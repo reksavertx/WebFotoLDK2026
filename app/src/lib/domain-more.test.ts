@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseStudentCsv, validateImageSignature } from "./domain";
+import { parseStudentCsv, photoExportExtension, validateImageSignature } from "./domain";
 
 describe("student and image validation", () => {
   it("parses the supplied school CSV format", () => {
@@ -11,5 +11,19 @@ describe("student and image validation", () => {
   it("checks image magic bytes", () => {
     expect(validateImageSignature(Buffer.from([0xff, 0xd8, 0xff]), "image/jpeg")).toBe(true);
     expect(validateImageSignature(Buffer.from("not image"), "image/jpeg")).toBe(false);
+  });
+});
+
+describe("photo export extension", () => {
+  it("maps webp mime to webp extension", () => {
+    expect(photoExportExtension("image/webp")).toBe("webp");
+  });
+
+  it("maps jpeg mime to jpg extension", () => {
+    expect(photoExportExtension("image/jpeg")).toBe("jpg");
+  });
+
+  it("maps png mime to jpg extension", () => {
+    expect(photoExportExtension("image/png")).toBe("jpg");
   });
 });

@@ -42,3 +42,7 @@ export function parseStudentCsv(csv: string) {
   }
   return students;
 }
+
+export function photoExportExtension(mimeType: string): string {
+  return mimeType === "image/webp" ? "webp" : "jpg";
+}
