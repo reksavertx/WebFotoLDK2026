@@ -7,11 +7,12 @@ WebFoto adalah sistem pengumpulan dan validasi foto siswa. Siswa tidak perlu mem
 - Form siswa mobile-friendly tanpa login.
 - Identitas siswa berasal dari database, bukan input nama bebas.
 - Upload JPEG, PNG, atau WEBP maksimal 5 MB.
-- Foto diputar sesuai orientasi, diperkecil, dan disimpan sebagai WEBP.
+- Foto diputar sesuai orientasi, diperkecil, dan disimpan sebagai JPEG (.jpg).
 - Upload ulang menggantikan foto aktif sebelumnya.
 - Dashboard admin dengan status `pending`, `uploaded`, dan `blur`.
 - Filter kelas/status/search, statistik, mark blur/valid, dan copy daftar nama.
-- Export ZIP berdasarkan kelas dengan nama `Kelas - Absen - Nama.webp`.
+- Export ZIP per kelas atau seluruh kelas (folder per kelas) dengan nama `Kelas - Absen - Nama.jpg`.
+- Preview foto langsung dari dashboard dengan mengklik nama siswa.
 - Export JSON/CSV untuk sistem design automation.
 - Import CSV dengan mode preview dan commit.
 - MySQL 8.4 LTS dan storage foto persisten.
