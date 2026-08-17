@@ -1,0 +1,9 @@
+.env
+app/.env
+app/node_modules
+app/.next
+data/uploads/*
+data/generated/*
+!data/uploads/.gitkeep
+!data/generated/.gitkeep
+database/

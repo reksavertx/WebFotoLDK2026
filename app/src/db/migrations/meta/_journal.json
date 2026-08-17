@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1786529464654,
+      "tag": "0000_skinny_the_captain",
+      "breakpoints": true
+    }
+  ]
+}

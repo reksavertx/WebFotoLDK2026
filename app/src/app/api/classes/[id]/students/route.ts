@@ -1,0 +1,10 @@
+import { asc, eq } from "drizzle-orm";
+import { db } from "@/db";
+import { photos, students } from "@/db/schema";
+
+export async function GET(_: Request, context: { params: Promise<{ id: string }> }) {
+  const classId = Number((await context.params).id);
+  if (!Number.isInteger(classId)) return Response.json({ error: "Kelas tidak ditemukan." }, { status: 400 });
+  const rows = await db.select({ id: students.id, studentId: students.studentId, name: students.name, attendanceNumber: students.attendanceNumber, status: photos.status }).from(students).leftJoin(photos, eq(photos.studentId, students.id)).where(eq(students.classId, classId)).orderBy(asc(students.attendanceNumber));
+  return Response.json(rows.map((row) => ({ ...row, status: row.status ?? "pending" })));
+}

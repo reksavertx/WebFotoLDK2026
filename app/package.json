@@ -1,0 +1,46 @@
+{
+  "name": "webfoto-app",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "seed": "node --env-file-if-exists=.env --import=tsx src/db/seed.ts"
+  },
+  "dependencies": {
+    "@radix-ui/react-dialog": "^1.1.6",
+    "archiver": "^7.0.1",
+    "bcryptjs": "^3.0.2",
+    "drizzle-orm": "^0.45.2",
+    "jose": "^6.0.10",
+    "lucide-react": "^0.468.0",
+    "next": "^15.5.22",
+    "mysql2": "^3.14.1",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "sharp": "^0.34.3",
+    "zod": "^4.0.5"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.7",
+    "@types/archiver": "^6.0.3",
+    "@types/node": "^22.15.21",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "drizzle-kit": "^0.31.4",
+    "eslint": "^9.29.0",
+    "eslint-config-next": "^15.5.23",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^4.1.7",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  }
+}
