@@ -13,11 +13,11 @@ export async function processUpload(file: File, studentId: string) {
   const input = Buffer.from(await file.arrayBuffer());
   if (!validateImageSignature(input, file.type)) throw new Error("File foto tidak valid atau rusak.");
   await fs.mkdir(uploadDir, { recursive: true });
-  const filename = `${studentId}.webp`;
+  const filename = `${studentId}.jpg`;
   const absolutePath = path.join(uploadDir, filename);
-  await sharp(input).rotate().resize({ width: 1600, height: 1600, fit: "inside", withoutEnlargement: true }).webp({ quality: 82 }).toFile(absolutePath);
+  await sharp(input).rotate().resize({ width: 1600, height: 1600, fit: "inside", withoutEnlargement: true }).jpeg({ quality: 82 }).toFile(absolutePath);
   const stat = await fs.stat(absolutePath);
-  return { storagePath: filename, absolutePath, fileSize: stat.size, mimeType: "image/webp" };
+  return { storagePath: filename, absolutePath, fileSize: stat.size, mimeType: "image/jpeg" };
 }
 
 export function storagePath(filename: string) {
