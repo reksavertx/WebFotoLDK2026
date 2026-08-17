@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
-type Row = { id: number; name: string; attendanceNumber: number; className: string; status: string; uploadedAt: string | null; photoId: number | null };
+type Row = { id: number; studentId: string; name: string; attendanceNumber: number; className: string; status: string; uploadedAt: string | null; photoId: number | null };
 type ClassRow = { id: number; name: string };
 type Stats = { total: number; uploaded: number; blur: number; submitted: number; pending: number; submittedPercentage: number; pendingPercentage: number; pendingByClass: { className: string; total: number; pending: number }[] };
 type PendingRow = { className: string; total: number; pending: number };
@@ -16,6 +16,7 @@ export default function AdminPage() {
   const [search, setSearch] = useState("");
   const [stats, setStats] = useState<Stats>({ total: 0, uploaded: 0, blur: 0, submitted: 0, pending: 0, submittedPercentage: 0, pendingPercentage: 0, pendingByClass: [] });
   const [notice, setNotice] = useState("");
+  const [preview, setPreview] = useState<Row | null>(null);
 
   async function load() {
     const response = await fetch(`/api/admin/students?classId=${classId}&status=${status}&search=${encodeURIComponent(search)}`);
@@ -26,6 +27,13 @@ export default function AdminPage() {
 
   useEffect(() => { fetch("/api/classes").then((response) => response.json()).then(setClasses); }, []);
   useEffect(() => { load(); }, [classId, status]);
+
+  useEffect(() => {
+    if (!preview) return;
+    const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") setPreview(null); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [preview]);
 
   async function mark(photoId: number | null, next: "blur" | "uploaded") {
     if (!photoId) return;
@@ -40,7 +48,8 @@ export default function AdminPage() {
   }
 
   async function logout() { await fetch("/api/admin/logout", { method: "POST" }); location.href = "/admin/login"; }
-  function exportZip() { if (classId) location.href = `/api/admin/export/${classId}`; else setNotice("Pilih kelas terlebih dahulu untuk export ZIP."); }
+  function exportZip() { location.href = classId ? `/api/admin/export/${classId}` : "/api/admin/export/all"; }
+  function exportAllZip() { location.href = "/api/admin/export/all"; }
 
   return <main className="min-h-screen bg-slate-50">
     <header className="border-b border-blue-100 bg-white"><div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4"><div className="flex items-center gap-3"><Image src="/logo-sekolah.png" alt="Logo sekolah" width={48} height={48} className="rounded-xl object-contain" /><div><p className="text-xs font-bold uppercase tracking-widest text-blue-600">LDK SMK NEGERI 1 BATANG</p><h1 className="font-black text-slate-900">Pengumpulan Foto LDK 2026</h1></div></div><button onClick={logout} className="rounded-lg px-3 py-2 text-sm font-bold text-slate-500 hover:bg-slate-100">Keluar</button></div></header>
@@ -62,9 +71,10 @@ export default function AdminPage() {
           <div className="mt-4 space-y-2.5">{stats.pendingByClass.map((row) => <ClassBar key={row.className} row={row} max={stats.pendingByClass[0]?.pending ?? 0} />)}</div>
         </div>
       </section>
-      <section className="rounded-2xl bg-white p-4 shadow-sm"><div className="flex flex-col gap-3 lg:flex-row"><select value={classId} onChange={(event) => setClassId(event.target.value)} className="rounded-xl border border-slate-200 px-3 py-2"><option value="">Semua kelas</option>{classes.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select><select value={status} onChange={(event) => setStatus(event.target.value)} className="rounded-xl border border-slate-200 px-3 py-2"><option value="all">Semua status</option><option value="pending">Belum upload</option><option value="uploaded">Uploaded</option><option value="blur">Blur</option></select><input value={search} onChange={(event) => setSearch(event.target.value)} onKeyDown={(event) => event.key === "Enter" && load()} placeholder="Cari nama atau NIS" className="min-w-0 flex-1 rounded-xl border border-slate-200 px-3 py-2" /><button onClick={() => copyNames("pending")} className="rounded-xl bg-blue-50 px-3 py-2 text-sm font-bold text-blue-700">Copy Belum Upload</button><button onClick={() => copyNames("blur")} className="rounded-xl bg-amber-50 px-3 py-2 text-sm font-bold text-amber-700">Copy Foto Blur</button><button onClick={exportZip} className="rounded-xl bg-blue-600 px-3 py-2 text-sm font-bold text-white">Download ZIP</button></div>{notice && <p className="mt-3 text-sm font-semibold text-green-700">{notice}</p>}</section>
-      <section className="overflow-hidden rounded-2xl bg-white shadow-sm"><div className="overflow-x-auto"><table className="w-full min-w-[760px] text-left text-sm"><thead className="bg-blue-50 text-xs uppercase text-blue-800"><tr><th className="px-4 py-3">Absen</th><th className="px-4 py-3">Nama</th><th className="px-4 py-3">Kelas</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Upload Time</th><th className="px-4 py-3">Action</th></tr></thead><tbody className="divide-y divide-slate-100">{rows.map((row) => <tr key={row.id}><td className="px-4 py-3 font-bold">{String(row.attendanceNumber).padStart(2, "0")}</td><td className="px-4 py-3 font-semibold">{row.name}</td><td className="px-4 py-3 text-slate-500">{row.className}</td><td className="px-4 py-3"><Status status={row.status} /></td><td className="px-4 py-3 text-slate-500">{row.uploadedAt ? new Date(row.uploadedAt).toLocaleString("id-ID") : "-"}</td><td className="px-4 py-3">{row.status === "uploaded" ? <button onClick={() => mark(row.photoId, "blur")} className="font-bold text-amber-700">Mark Blur</button> : row.status === "blur" ? <button onClick={() => mark(row.photoId, "uploaded")} className="font-bold text-green-700">Mark Valid</button> : <span className="text-slate-400">-</span>}</td></tr>)}</tbody></table></div>{!rows.length && <p className="p-10 text-center text-slate-500">Tidak ada data yang cocok.</p>}</section>
+      <section className="rounded-2xl bg-white p-4 shadow-sm"><div className="flex flex-col gap-3 lg:flex-row"><select value={classId} onChange={(event) => setClassId(event.target.value)} className="rounded-xl border border-slate-200 px-3 py-2"><option value="">Semua kelas</option>{classes.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select><select value={status} onChange={(event) => setStatus(event.target.value)} className="rounded-xl border border-slate-200 px-3 py-2"><option value="all">Semua status</option><option value="pending">Belum upload</option><option value="uploaded">Sudah upload</option><option value="blur">Blur</option></select><input value={search} onChange={(event) => setSearch(event.target.value)} onKeyDown={(event) => event.key === "Enter" && load()} placeholder="Cari nama atau NIS" className="min-w-0 flex-1 rounded-xl border border-slate-200 px-3 py-2" /><button onClick={() => copyNames("pending")} className="rounded-xl bg-blue-50 px-3 py-2 text-sm font-bold text-blue-700">Copy Belum Upload</button><button onClick={() => copyNames("blur")} className="rounded-xl bg-amber-50 px-3 py-2 text-sm font-bold text-amber-700">Copy Foto Blur</button><button onClick={exportZip} className="rounded-xl bg-blue-600 px-3 py-2 text-sm font-bold text-white">Download ZIP</button><button onClick={exportAllZip} className="rounded-xl bg-slate-800 px-3 py-2 text-sm font-bold text-white">Download ZIP Semua</button></div>{notice && <p className="mt-3 text-sm font-semibold text-green-700">{notice}</p>}</section>
+      <section className="overflow-hidden rounded-2xl bg-white shadow-sm"><div className="overflow-x-auto"><table className="w-full min-w-[760px] text-left text-sm"><thead className="bg-blue-50 text-xs uppercase text-blue-800"><tr><th className="px-4 py-3">Absen</th><th className="px-4 py-3">Nama</th><th className="px-4 py-3">Kelas</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Waktu Upload</th><th className="px-4 py-3">Aksi</th></tr></thead><tbody className="divide-y divide-slate-100">{rows.map((row) => <tr key={row.id}><td className="px-4 py-3 font-bold">{String(row.attendanceNumber).padStart(2, "0")}</td><td className="px-4 py-3 font-semibold">{row.status === "uploaded" || row.status === "blur" ? <button onClick={() => setPreview(row)} className="font-bold text-blue-700 hover:underline">{row.name}</button> : <span>{row.name}</span>}</td><td className="px-4 py-3 text-slate-500">{row.className}</td><td className="px-4 py-3"><Status status={row.status} /></td><td className="px-4 py-3 text-slate-500">{row.uploadedAt ? new Date(row.uploadedAt).toLocaleString("id-ID") : "-"}</td><td className="px-4 py-3">{row.status === "uploaded" ? <button onClick={() => mark(row.photoId, "blur")} className="font-bold text-amber-700">Tandai Blur</button> : row.status === "blur" ? <button onClick={() => mark(row.photoId, "uploaded")} className="font-bold text-green-700">Tandai Valid</button> : <span className="text-slate-400">-</span>}</td></tr>)}</tbody></table></div>{!rows.length && <p className="p-10 text-center text-slate-500">Tidak ada data yang cocok.</p>}</section>
     </div>
+    {preview && <PreviewModal row={preview} onClose={() => setPreview(null)} />}
   </main>;
 }
 
@@ -88,4 +98,12 @@ function ClassBar({ row, max }: { row: PendingRow; max: number }) {
     <div className="mt-1 h-2.5 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-amber-500" style={{ width: `${width}%` }} /></div>
   </div>;
 }
-function Status({ status }: { status: string }) { const label = status === "blur" ? "⚠ Blur" : status === "uploaded" ? "✓ Uploaded" : "○ Pending"; const style = status === "blur" ? "bg-amber-100 text-amber-800" : status === "uploaded" ? "bg-green-100 text-green-800" : "bg-slate-100 text-slate-600"; return <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${style}`}>{label}</span>; }
+function Status({ status }: { status: string }) { const label = status === "blur" ? "⚠ Blur" : status === "uploaded" ? "✓ Sudah upload" : "○ Belum upload"; const style = status === "blur" ? "bg-amber-100 text-amber-800" : status === "uploaded" ? "bg-green-100 text-green-800" : "bg-slate-100 text-slate-600"; return <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${style}`}>{label}</span>; }
+function PreviewModal({ row, onClose }: { row: Row; onClose: () => void }) {
+  return <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-4" onClick={onClose}>
+    <div className="max-h-[90vh] w-full max-w-4xl overflow-auto rounded-2xl bg-white p-5 shadow-2xl" onClick={(event) => event.stopPropagation()}>
+      <div className="mb-4 flex items-start justify-between gap-4"><div><h2 className="text-xl font-black text-slate-900">{row.name}</h2><p className="text-sm text-slate-500">{row.className} — Absen {String(row.attendanceNumber).padStart(2, "0")} · <Status status={row.status} /></p></div><button onClick={onClose} aria-label="Tutup" className="rounded-lg px-3 py-1.5 text-sm font-bold text-slate-500 hover:bg-slate-100">✕</button></div>
+      <img src={`/api/photos/${row.studentId}`} alt={`Foto ${row.name}`} className="mx-auto max-h-[75vh] rounded-xl object-contain" />
+    </div>
+  </div>;
+}
