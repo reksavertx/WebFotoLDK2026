@@ -10,6 +10,17 @@ export type EventSettings = {
   description: string;
 };
 
+export type SettingsRow = {
+  draftMode: FormMode;
+  draftTitle: string;
+  draftYear: string;
+  draftDescription: string;
+  activeMode: FormMode;
+  activeTitle: string;
+  activeYear: string;
+  activeDescription: string;
+};
+
 export const defaultEventSettings: EventSettings = {
   mode: "list" as FormMode,
   title: "Pengumpulan Foto LDK",
@@ -18,6 +29,51 @@ export const defaultEventSettings: EventSettings = {
 };
 
 export class SettingsValidationError extends Error {}
+
+export function mapActiveSettings(row: SettingsRow): EventSettings {
+  return { mode: row.activeMode, title: row.activeTitle, year: row.activeYear, description: row.activeDescription };
+}
+
+export function buildDraftUpdate(settings: EventSettings) {
+  return {
+    draftMode: settings.mode,
+    draftTitle: settings.title,
+    draftYear: settings.year,
+    draftDescription: settings.description,
+  };
+}
+
+export function applyDraftToActive<TMode, TText>(row: {
+  draftMode: TMode;
+  draftTitle: TText;
+  draftYear: TText;
+  draftDescription: TText;
+  activeMode?: unknown;
+  activeTitle?: unknown;
+  activeYear?: unknown;
+  activeDescription?: unknown;
+}) {
+  return {
+    activeMode: row.draftMode,
+    activeTitle: row.draftTitle,
+    activeYear: row.draftYear,
+    activeDescription: row.draftDescription,
+  };
+}
+
+export function defaultSettingsRow(): SettingsRow & { id: 1 } {
+  return {
+    id: 1,
+    draftMode: defaultEventSettings.mode,
+    activeMode: defaultEventSettings.mode,
+    draftTitle: defaultEventSettings.title,
+    activeTitle: defaultEventSettings.title,
+    draftYear: defaultEventSettings.year,
+    activeYear: defaultEventSettings.year,
+    draftDescription: defaultEventSettings.description,
+    activeDescription: defaultEventSettings.description,
+  };
+}
 
 export function validateEventSettings(value: unknown): EventSettings {
   if (!value || typeof value !== "object") throw new SettingsValidationError("Settings payload must be an object.");
@@ -38,11 +94,7 @@ export function validateEventSettings(value: unknown): EventSettings {
   return { mode, title, year, description };
 }
 
-function mapActiveSettings(row: typeof eventSettings.$inferSelect): EventSettings {
-  return { mode: row.activeMode, title: row.activeTitle, year: row.activeYear, description: row.activeDescription };
-}
-
-function mapDraftSettings(row: typeof eventSettings.$inferSelect): EventSettings {
+function mapDraftSettings(row: SettingsRow): EventSettings {
   return { mode: row.draftMode, title: row.draftTitle, year: row.draftYear, description: row.draftDescription };
 }
 
@@ -66,22 +118,12 @@ export async function updateDraftSettings(value: unknown): Promise<EventSettings
   await db
     .insert(eventSettings)
     .values({
-      id: 1,
-      draftMode: settings.mode,
-      activeMode: defaultEventSettings.mode,
-      draftTitle: settings.title,
-      activeTitle: defaultEventSettings.title,
-      draftYear: settings.year,
-      activeYear: defaultEventSettings.year,
-      draftDescription: settings.description,
-      activeDescription: defaultEventSettings.description,
+      ...defaultSettingsRow(),
+      ...buildDraftUpdate(settings),
     })
     .onDuplicateKeyUpdate({
       set: {
-        draftMode: settings.mode,
-        draftTitle: settings.title,
-        draftYear: settings.year,
-        draftDescription: settings.description,
+        ...buildDraftUpdate(settings),
         updatedAt: new Date(),
       },
     });
@@ -92,12 +134,20 @@ export async function activateSettings(): Promise<EventSettings> {
   await db
     .update(eventSettings)
     .set({
-      activeMode: sql`${eventSettings.draftMode}`,
-      activeTitle: sql`${eventSettings.draftTitle}`,
-      activeYear: sql`${eventSettings.draftYear}`,
-      activeDescription: sql`${eventSettings.draftDescription}`,
+      ...applyDraftToActive({
+        draftMode: sql`${eventSettings.draftMode}`,
+        draftTitle: sql`${eventSettings.draftTitle}`,
+        draftYear: sql`${eventSettings.draftYear}`,
+        draftDescription: sql`${eventSettings.draftDescription}`,
+      }),
       updatedAt: new Date(),
     })
     .where(eq(eventSettings.id, 1));
   return getActiveSettings();
+}
+
+type SettingsDatabase = Pick<typeof db, "insert">;
+
+export async function seedDefaultSettings(database: SettingsDatabase = db) {
+  await database.insert(eventSettings).values(defaultSettingsRow()).onDuplicateKeyUpdate({ set: { id: 1 } });
 }
