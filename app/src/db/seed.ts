@@ -2,9 +2,10 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import bcrypt from "bcryptjs";
 import { db, pool } from "./index";
-import { adminUsers, classes, students } from "./schema";
+import { adminUsers, classes, eventSettings, students } from "./schema";
 import { eq } from "drizzle-orm";
 import { parseStudentCsv } from "../lib/domain";
+import { defaultEventSettings } from "../lib/settings";
 
 async function main() {
   const csvPath = process.env.STUDENTS_CSV ?? path.resolve(process.cwd(), "../data/daftar_siswa_kelas_x.csv");
@@ -33,6 +34,18 @@ async function main() {
     const passwordHash = await bcrypt.hash(password, 12);
     await db.insert(adminUsers).values({ username, passwordHash }).onDuplicateKeyUpdate({ set: { passwordHash, updatedAt: new Date() } });
   }
+
+  await db.insert(eventSettings).values({
+    id: 1,
+    draftMode: defaultEventSettings.mode,
+    activeMode: defaultEventSettings.mode,
+    draftTitle: defaultEventSettings.title,
+    activeTitle: defaultEventSettings.title,
+    draftYear: defaultEventSettings.year,
+    activeYear: defaultEventSettings.year,
+    draftDescription: defaultEventSettings.description,
+    activeDescription: defaultEventSettings.description,
+  }).onDuplicateKeyUpdate({ set: { id: 1 } });
 
   console.log(`Seeded ${rows.length} students in ${classIds.size} classes.`);
   await pool.end();
