@@ -1,6 +1,5 @@
 import { int, mysqlEnum, mysqlTable, text, timestamp, unique, uniqueIndex, varchar } from "drizzle-orm/mysql-core";
 
-export const photoStatus = mysqlEnum("status", ["pending", "uploaded", "blur"]);
 const formModeValues = ["list", "free"] as const;
 const submissionStatusValues = ["uploaded", "blur"] as const;
 export const formMode = mysqlEnum("form_mode", formModeValues);
@@ -25,7 +24,7 @@ export const students = mysqlTable("students", {
 }, (table) => [unique("students_class_attendance_unique").on(table.classId, table.attendanceNumber)]);
 
 export const eventSettings = mysqlTable("event_settings", {
-  id: int("id").primaryKey(),
+  id: int("id").default(1).primaryKey(),
   draftMode: mysqlEnum("draft_mode", formModeValues).default("list").notNull(),
   activeMode: mysqlEnum("active_mode", formModeValues).default("list").notNull(),
   draftTitle: varchar("draft_title", { length: 160 }).default("Pengumpulan Foto LDK").notNull(),
@@ -55,18 +54,6 @@ export const photoSubmissions = mysqlTable("photo_submissions", {
   uploadedAt: timestamp("uploaded_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => [uniqueIndex("photo_submissions_student_id_unique").on(table.studentId)]);
-
-export const photos = mysqlTable("photos", {
-  id: int("id").autoincrement().primaryKey(),
-  studentId: int("student_id").notNull().references(() => students.id, { onDelete: "cascade" }).unique(),
-  storagePath: text("storage_path").notNull(),
-  originalFilename: text("original_filename").notNull(),
-  mimeType: varchar("mime_type", { length: 80 }).notNull(),
-  fileSize: int("file_size").notNull(),
-  status: photoStatus.default("uploaded").notNull(),
-  uploadedAt: timestamp("uploaded_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
 
 export const adminUsers = mysqlTable("admin_users", {
   id: int("id").autoincrement().primaryKey(),
