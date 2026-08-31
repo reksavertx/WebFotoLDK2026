@@ -22,3 +22,27 @@ export function buildDashboardStats(input: DashboardInput) {
 export function sortClassesByPending(rows: { className: string; total: number; pending: number }[]) {
   return [...rows].sort((a, b) => b.pending - a.pending);
 }
+
+export type SubmissionStatsInput = {
+  total: number;
+  uploaded: number;
+  blur: number;
+  pending: number;
+  byClass?: { className: string; total: number; submitted: number; pending: number }[];
+};
+
+export function buildSubmissionStats(input: SubmissionStatsInput) {
+  const submitted = input.uploaded + input.blur;
+  const submittedPercentage = input.total ? Math.round((submitted / input.total) * 1000) / 10 : 0;
+  const pendingPercentage = input.total ? Math.round((input.pending / input.total) * 1000) / 10 : 0;
+  return {
+    total: input.total,
+    uploaded: input.uploaded,
+    blur: input.blur,
+    submitted,
+    pending: input.pending,
+    submittedPercentage,
+    pendingPercentage,
+    byClass: input.byClass ?? [],
+  };
+}
