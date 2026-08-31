@@ -1,4 +1,5 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, unique, uniqueIndex, varchar } from "drizzle-orm/mysql-core";
+import { sql } from "drizzle-orm";
+import { check, int, mysqlEnum, mysqlTable, text, timestamp, unique, uniqueIndex, varchar } from "drizzle-orm/mysql-core";
 
 const formModeValues = ["list", "free"] as const;
 const submissionStatusValues = ["uploaded", "blur"] as const;
@@ -35,7 +36,7 @@ export const eventSettings = mysqlTable("event_settings", {
   activeDescription: varchar("active_description", { length: 500 }).default("Pengumpulan foto LDK SMK NEGERI 1 BATANG Tahun 2026").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (table) => [check("event_settings_id_singleton", sql`${table.id} = 1`)]);
 
 export const photoSubmissions = mysqlTable("photo_submissions", {
   id: int("id").autoincrement().primaryKey(),

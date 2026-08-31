@@ -13,6 +13,8 @@ CREATE TABLE `event_settings` (
 	CONSTRAINT `event_settings_id` PRIMARY KEY(`id`)
 );
 --> statement-breakpoint
+ALTER TABLE `event_settings` ADD CONSTRAINT `event_settings_id_singleton` CHECK (`event_settings`.`id` = 1);
+--> statement-breakpoint
 INSERT INTO `event_settings` (`id`, `draft_mode`, `active_mode`, `draft_title`, `active_title`, `draft_year`, `active_year`, `draft_description`, `active_description`) VALUES (1, 'list', 'list', 'Pengumpulan Foto LDK', 'Pengumpulan Foto LDK', '2026', '2026', 'Pengumpulan foto LDK SMK NEGERI 1 BATANG Tahun 2026', 'Pengumpulan foto LDK SMK NEGERI 1 BATANG Tahun 2026');
 --> statement-breakpoint
 CREATE TABLE `photo_submissions` (

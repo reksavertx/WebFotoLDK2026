@@ -222,7 +222,12 @@
         }
       },
       "uniqueConstraints": {},
-      "checkConstraint": {}
+      "checkConstraint": {
+        "event_settings_id_singleton": {
+          "name": "event_settings_id_singleton",
+          "value": "`event_settings`.`id` = 1"
+        }
+      }
     },
     "photo_submissions": {
       "name": "photo_submissions",

@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { getTableConfig } from "drizzle-orm/mysql-core";
 import * as schema from "../db/schema";
 import { eventSettings } from "../db/schema";
 import { freeSubmissionFilename, validateFreeName } from "./submissions";
@@ -27,7 +28,10 @@ describe("reusable photo submission domain", () => {
   it("initializes event settings as the id 1 singleton", () => {
     expect(eventSettings.id.default).toBe(1);
     expect(eventSettings.id.primary).toBe(true);
+    expect(getTableConfig(eventSettings).checks.map((check) => check.name)).toContain("event_settings_id_singleton");
     expect(migrationSql).toContain("`id` int NOT NULL DEFAULT 1");
+    expect(migrationSql).toMatch(/CONSTRAINT `event_settings_id_singleton` CHECK .*id.*=.*1/);
+    expect(migrationSnapshot.tables.event_settings.checkConstraint).toHaveProperty("event_settings_id_singleton");
     expect(migrationSql).toContain(
       "INSERT INTO `event_settings` (`id`, `draft_mode`, `active_mode`, `draft_title`, `active_title`, `draft_year`, `active_year`, `draft_description`, `active_description`) VALUES (1, 'list', 'list', 'Pengumpulan Foto LDK', 'Pengumpulan Foto LDK', '2026', '2026', 'Pengumpulan foto LDK SMK NEGERI 1 BATANG Tahun 2026', 'Pengumpulan foto LDK SMK NEGERI 1 BATANG Tahun 2026')",
     );
