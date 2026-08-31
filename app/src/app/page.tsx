@@ -5,6 +5,10 @@ import { useEffect, useState } from "react";
 
 type ClassRow = { id: number; name: string };
 type StudentRow = { id: number; name: string; attendanceNumber: number; status: string };
+type Mode = "list" | "free";
+type Settings = { mode: Mode; title: string; year: string; description: string };
+
+const defaultSettings: Settings = { mode: "list", title: "Pengumpulan Foto LDK", year: "2026", description: "Pilih identitasmu dari daftar, lalu unggah foto terbaikmu sesuai persyaratan." };
 
 const requirements = [
   { title: "Foto Jelas & Tajam", text: "Gambar tidak blur dan fokus pada wajah", icon: "✓" },
@@ -28,17 +32,25 @@ const tips = [
 ];
 
 export default function HomePage() {
+  const [settings, setSettings] = useState<Settings | null>(null);
   const [classes, setClasses] = useState<ClassRow[]>([]);
   const [students, setStudents] = useState<StudentRow[]>([]);
   const [classId, setClassId] = useState("");
   const [studentId, setStudentId] = useState("");
+  const [name, setName] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => { fetch("/api/classes").then((r) => r.json()).then(setClasses); }, []);
+  useEffect(() => {
+    void fetch("/api/settings").then(async (response) => {
+      if (!response.ok) throw new Error("Pengaturan tidak dapat dimuat.");
+      return response.json() as Promise<Settings>;
+    }).then(setSettings).catch((loadError: unknown) => setError(loadError instanceof Error ? loadError.message : "Pengaturan tidak dapat dimuat."));
+    void fetch("/api/classes").then((r) => r.json()).then(setClasses).catch(() => setClasses([]));
+  }, []);
   useEffect(() => {
     if (!classId) { setStudents([]); return; }
     fetch(`/api/classes/${classId}/students`).then((r) => r.json()).then(setStudents);
@@ -51,23 +63,38 @@ export default function HomePage() {
 
   async function submit(event: React.FormEvent) {
     event.preventDefault(); setError(""); setMessage("");
-    if (!studentId || !file) return setError("Pilih nama dan foto terlebih dahulu.");
+    if (!file) return setError("Pilih nama dan foto terlebih dahulu.");
+    if (mode === "list" && (!classId || !studentId)) return setError("Pilih nama dan foto terlebih dahulu.");
+    if (mode === "free" && name.trim().length < 3) return setError("Nama harus terdiri dari 3-160 karakter");
     setLoading(true);
-    const form = new FormData(); form.set("classId", classId); form.set("studentId", studentId); form.set("file", file);
-    const response = await fetch("/api/photos/upload", { method: "POST", body: form });
-    const data = await response.json(); setLoading(false);
-    if (!response.ok) return setError(data.error ?? "Upload gagal.");
-    setMessage(data.message); chooseFile(null);
+    try {
+      const form = new FormData(); form.set("mode", mode); form.set("file", file);
+      if (mode === "free") form.set("name", name);
+      else { form.set("classId", classId); form.set("studentId", studentId); }
+      const response = await fetch("/api/photos/upload", { method: "POST", body: form });
+      const data = await response.json();
+      if (!response.ok) return setError(data.error ?? "Upload gagal.");
+      setMessage(data.message); setName(""); setClassId(""); setStudentId(""); setFile(null); setPreview("");
+    } catch {
+      setError("Upload gagal.");
+    } finally {
+      setLoading(false);
+    }
   }
+
+  const mode = settings?.mode ?? defaultSettings.mode;
+  const title = settings?.title ?? defaultSettings.title;
+  const year = settings?.year ?? defaultSettings.year;
+  const description = settings?.description ?? defaultSettings.description;
 
   return <main className="min-h-screen bg-blue-50 px-4 py-8">
     <section className="mx-auto max-w-5xl rounded-3xl bg-white p-6 shadow-xl shadow-blue-100 sm:p-10">
       <div className="mb-8 text-center">
         <Image src="/logo-sekolah.png" alt="Logo SMK Negeri 1 Batang" width={96} height={96} className="mx-auto mb-4 rounded-2xl object-contain" />
         <p className="text-sm font-bold uppercase tracking-[0.2em] text-blue-600">LDK SMK NEGERI 1 BATANG</p>
-        <h1 className="mt-2 text-3xl font-black text-slate-900 sm:text-4xl">Pengumpulan Foto LDK</h1>
-        <p className="mt-2 text-lg font-bold text-blue-700">Tahun 2026</p>
-        <p className="mx-auto mt-3 max-w-2xl text-slate-500">Pilih identitasmu dari daftar, lalu unggah foto terbaikmu sesuai persyaratan.</p>
+        <h1 className="mt-2 text-3xl font-black text-slate-900 sm:text-4xl">{title}</h1>
+        <p className="mt-2 text-lg font-bold text-blue-700">Tahun {year}</p>
+        <p className="mx-auto mt-3 max-w-2xl text-slate-500">{description}</p>
       </div>
 
       <section aria-labelledby="requirements-title" className="mb-8 rounded-2xl border border-blue-100 bg-blue-50/70 p-5 sm:p-6">
@@ -80,13 +107,13 @@ export default function HomePage() {
       </section>
 
       <form onSubmit={submit} className="mx-auto max-w-2xl space-y-5">
-        <label className="block"><span className="mb-2 block text-sm font-bold text-slate-700">Kelas</span><select value={classId} onChange={(e) => { setClassId(e.target.value); setStudentId(""); }} className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none ring-blue-500 focus:ring-2"><option value="">Pilih kelas</option>{classes.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
-        <label className="block"><span className="mb-2 block text-sm font-bold text-slate-700">Nama</span><select value={studentId} onChange={(e) => setStudentId(e.target.value)} disabled={!classId} className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none ring-blue-500 focus:ring-2 disabled:bg-slate-100"><option value="">Pilih nama</option>{students.map((item) => <option key={item.id} value={item.id}>{String(item.attendanceNumber).padStart(2, "0")} - {item.name}{item.status !== "pending" ? " (sudah upload)" : ""}</option>)}</select></label>
+        {mode === "list" ? <><label className="block"><span className="mb-2 block text-sm font-bold text-slate-700">Kelas</span><select value={classId} onChange={(e) => { setClassId(e.target.value); setStudentId(""); }} className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none ring-blue-500 focus:ring-2"><option value="">Pilih kelas</option>{classes.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+        <label className="block"><span className="mb-2 block text-sm font-bold text-slate-700">Nama</span><select value={studentId} onChange={(e) => setStudentId(e.target.value)} disabled={!classId} className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none ring-blue-500 focus:ring-2 disabled:bg-slate-100"><option value="">Pilih nama</option>{students.map((item) => <option key={item.id} value={item.id}>{String(item.attendanceNumber).padStart(2, "0")} - {item.name}{item.status !== "pending" ? " (sudah upload)" : ""}</option>)}</select></label></> : <label className="block"><span className="mb-2 block text-sm font-bold text-slate-700">Nama</span><input required minLength={3} maxLength={160} value={name} onChange={(e) => setName(e.target.value)} placeholder="Masukkan nama" className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none ring-blue-500 focus:ring-2" /><span className="mt-2 block text-xs text-slate-500">Nama harus terdiri dari 3-160 karakter.</span></label>}
         <label className="block"><span className="mb-2 block text-sm font-bold text-slate-700">Foto</span><input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => chooseFile(e.target.files?.[0] ?? null)} className="w-full rounded-xl border border-dashed border-blue-300 bg-blue-50 px-4 py-3 text-sm" /><span className="mt-2 block text-xs text-slate-500">Format JPG, PNG, atau WEBP. Maksimal 5 MB.</span></label>
         {preview && <div className="overflow-hidden rounded-2xl border border-blue-100 bg-slate-50 p-3"><img src={preview} alt="Preview foto" className="mx-auto max-h-80 rounded-xl object-contain" /></div>}
         {error && <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{error}</p>}
          {message && <p role="status" className="rounded-xl bg-green-50 px-4 py-3 text-sm font-semibold text-green-700">✓ {message} Anda masih dapat mengganti foto jika diperlukan.</p>}
-        <button disabled={loading} className="w-full rounded-xl bg-blue-600 px-5 py-3.5 font-bold text-white shadow-lg shadow-blue-200 transition hover:bg-blue-700 disabled:cursor-wait disabled:opacity-60">{loading ? "Menyimpan..." : "Submit Foto"}</button>
+        <button disabled={loading || !settings} className="w-full rounded-xl bg-blue-600 px-5 py-3.5 font-bold text-white shadow-lg shadow-blue-200 transition hover:bg-blue-700 disabled:cursor-wait disabled:opacity-60">{loading ? "Menyimpan..." : !settings ? "Memuat pengaturan..." : "Submit Foto"}</button>
       </form>
     </section>
   </main>;
