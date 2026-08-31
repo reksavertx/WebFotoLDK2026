@@ -1,3 +1,5 @@
+export type FormMode = "list" | "free";
+export type SubmissionStatus = "uploaded" | "blur";
 export type PhotoStatus = "pending" | "uploaded" | "blur";
 
 export function transitionStatus(current: PhotoStatus, action: "blur" | "valid" | "upload"): PhotoStatus {
@@ -43,6 +45,6 @@ export function parseStudentCsv(csv: string) {
   return students;
 }
 
-export function photoExportExtension(mimeType: string): string {
+export function photoExportExtension(mimeType: string): "jpg" | "webp" {
   return mimeType === "image/webp" ? "webp" : "jpg";
 }
