@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { buildAdminExportUrl } from "@/lib/dashboard";
 
 type Mode = "list" | "free";
 type Settings = { mode: Mode; title: string; year: string; description: string };
@@ -106,8 +107,8 @@ export default function AdminPage() {
     }
   }
 
-  function exportZip() {
-    window.location.href = classId ? `/api/admin/export/${classId}` : "/api/admin/export/all";
+  function exportZip(all = false) {
+    window.location.href = buildAdminExportUrl(classId, all);
   }
 
   if (unauthorized) return <StatePanel title="Sesi admin berakhir" message="Silakan masuk kembali untuk melihat dashboard." actionLabel="Ke halaman login" onAction={() => { window.location.href = "/admin/login"; }} />;
@@ -155,7 +156,7 @@ export default function AdminPage() {
         {mode !== "free" && <select aria-label="Filter kelas" value={classId} onChange={(event) => setClassId(event.target.value)} className="rounded-xl border border-slate-200 bg-white px-3 py-2"><option value="">Semua kelas</option>{classes.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select>}
         <select aria-label="Filter status" value={status} onChange={(event) => setStatus(event.target.value)} className="rounded-xl border border-slate-200 bg-white px-3 py-2"><option value="all">Semua status</option><option value="pending">Belum upload</option><option value="uploaded">Sudah upload</option><option value="blur">Blur</option></select>
         <input aria-label="Cari nama atau NIS" value={search} onChange={(event) => setSearch(event.target.value)} onKeyDown={(event) => event.key === "Enter" && void load()} placeholder={mode === "free" ? "Cari nama submission" : "Cari nama atau NIS"} className="min-w-0 flex-1 rounded-xl border border-slate-200 px-3 py-2" />
-        <div className="flex flex-wrap gap-2"><button type="button" onClick={() => void copyNames("pending")} className="rounded-xl bg-blue-50 px-3 py-2 text-sm font-bold text-blue-700">Copy Belum Upload</button><button type="button" onClick={() => void copyNames("blur")} className="rounded-xl bg-amber-50 px-3 py-2 text-sm font-bold text-amber-700">Copy Foto Blur</button>{mode !== "free" && <button type="button" onClick={exportZip} className="rounded-xl bg-blue-600 px-3 py-2 text-sm font-bold text-white">Download ZIP</button>}<button type="button" onClick={exportZip} className="rounded-xl bg-slate-800 px-3 py-2 text-sm font-bold text-white">Download ZIP Semua</button></div>
+        <div className="flex flex-wrap gap-2"><button type="button" onClick={() => void copyNames("pending")} className="rounded-xl bg-blue-50 px-3 py-2 text-sm font-bold text-blue-700">Copy Belum Upload</button><button type="button" onClick={() => void copyNames("blur")} className="rounded-xl bg-amber-50 px-3 py-2 text-sm font-bold text-amber-700">Copy Foto Blur</button>{mode !== "free" && <button type="button" onClick={() => exportZip()} className="rounded-xl bg-blue-600 px-3 py-2 text-sm font-bold text-white">Download ZIP</button>}<button type="button" onClick={() => exportZip(true)} className="rounded-xl bg-slate-800 px-3 py-2 text-sm font-bold text-white">Download ZIP Semua</button></div>
       </div>{notice && <p role="status" className="mt-3 text-sm font-semibold text-green-700">{notice}</p>}</section>
 
       <section className="overflow-hidden rounded-2xl bg-white shadow-sm"><div className="overflow-x-auto"><table className="w-full min-w-[680px] text-left text-sm"><thead className="bg-blue-50 text-xs uppercase text-blue-800"><tr>{mode !== "free" && <th className="px-4 py-3">Absen</th>}<th className="px-4 py-3">Nama</th>{mode !== "free" && <th className="px-4 py-3">Kelas</th>}<th className="px-4 py-3">Status</th><th className="px-4 py-3">Waktu Upload</th><th className="px-4 py-3">Aksi</th></tr></thead><tbody className="divide-y divide-slate-100">{rows.map((row, index) => <tr key={row.submissionKey ?? `${row.name}-${index}`}>{mode !== "free" && <td className="px-4 py-3 font-bold">{typeof row.attendanceNumber !== "number" ? "-" : String(row.attendanceNumber).padStart(2, "0")}</td>}<td className="px-4 py-3 font-semibold">{row.submissionKey && row.status !== "pending" ? <button type="button" onClick={() => setPreview(row)} className="font-bold text-blue-700 hover:underline">{row.name}</button> : <span>{row.name}</span>}</td>{mode !== "free" && <td className="px-4 py-3 text-slate-500">{row.className ?? "-"}</td>}<td className="px-4 py-3"><Status status={row.status} /></td><td className="px-4 py-3 text-slate-500">{row.uploadedAt ? new Date(row.uploadedAt).toLocaleString("id-ID") : "-"}</td><td className="px-4 py-3">{row.status === "uploaded" && row.photoId ? <button type="button" onClick={() => void mark(row.photoId ?? null, "blur")} className="font-bold text-amber-700 hover:underline">Tandai Blur</button> : row.status === "blur" && row.photoId ? <button type="button" onClick={() => void mark(row.photoId ?? null, "uploaded")} className="font-bold text-green-700 hover:underline">Tandai Valid</button> : <span className="text-slate-400">-</span>}</td></tr>)}</tbody></table></div>{!loading && !rows.length && <p className="p-10 text-center text-slate-500">{mode === "free" ? "Belum ada submission foto yang cocok." : "Tidak ada siswa yang cocok dengan filter ini."}</p>}</section>

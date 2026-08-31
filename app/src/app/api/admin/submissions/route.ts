@@ -24,7 +24,7 @@ export async function GET(request: Request) {
     if (search) filters.push(like(photoSubmissions.name, `%${search}%`));
 
     const rows = status === "pending" ? [] : await db
-      .select({ submissionKey: photoSubmissions.submissionKey, name: photoSubmissions.name, status: photoSubmissions.status, uploadedAt: photoSubmissions.uploadedAt })
+      .select({ submissionKey: photoSubmissions.submissionKey, photoId: photoSubmissions.id, name: photoSubmissions.name, status: photoSubmissions.status, uploadedAt: photoSubmissions.uploadedAt })
       .from(photoSubmissions)
       .where(and(...filters))
       .orderBy(asc(photoSubmissions.uploadedAt), asc(photoSubmissions.submissionKey));

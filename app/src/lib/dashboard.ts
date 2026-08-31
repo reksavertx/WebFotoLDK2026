@@ -46,3 +46,7 @@ export function buildSubmissionStats(input: SubmissionStatsInput) {
     byClass: input.byClass ?? [],
   };
 }
+
+export function buildAdminExportUrl(classId: string, all = false) {
+  return all || !classId ? "/api/admin/export/all" : `/api/admin/export/${classId}`;
+}
