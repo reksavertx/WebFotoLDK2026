@@ -120,7 +120,7 @@ export default function FormSettingsPage() {
             <h2 className="mt-1 text-xl font-black text-slate-900">Konfigurasi form</h2>
           </div>
 
-          <fieldset className="space-y-3">
+          <fieldset disabled={loading || saving || activating} className="space-y-6">
             <legend className="mb-2 text-sm font-bold text-slate-700">Mode identitas</legend>
             <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-4 hover:border-blue-300">
               <input type="radio" name="mode" value="list" checked={draft.mode === "list"} onChange={() => updateDraft("mode", "list")} className="mt-1 accent-blue-600" />
@@ -130,13 +130,12 @@ export default function FormSettingsPage() {
               <input type="radio" name="mode" value="free" checked={draft.mode === "free"} onChange={() => updateDraft("mode", "free")} className="mt-1 accent-blue-600" />
               <span><span className="block font-bold text-slate-800">Nama bebas</span><span className="mt-1 block text-sm text-slate-500">Peserta mengetik nama sendiri tanpa memilih kelas.</span></span>
             </label>
-          </fieldset>
-
-          <div className="mt-6 space-y-4">
+          <div className="space-y-4">
             <label className="block"><span className="mb-2 block text-sm font-bold text-slate-700">Judul</span><input required maxLength={160} value={draft.title} onChange={(event) => updateDraft("title", event.target.value)} className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none ring-blue-500 focus:ring-2" /></label>
             <label className="block"><span className="mb-2 block text-sm font-bold text-slate-700">Tahun</span><input required maxLength={4} value={draft.year} onChange={(event) => updateDraft("year", event.target.value)} className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none ring-blue-500 focus:ring-2" /></label>
             <label className="block"><span className="mb-2 block text-sm font-bold text-slate-700">Deskripsi</span><textarea maxLength={500} value={draft.description} onChange={(event) => updateDraft("description", event.target.value)} rows={4} className="w-full resize-y rounded-xl border border-slate-200 px-4 py-3 outline-none ring-blue-500 focus:ring-2" /></label>
           </div>
+          </fieldset>
 
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
             <button type="submit" disabled={loading || saving || activating} className="rounded-xl border border-blue-200 bg-white px-4 py-3 text-sm font-bold text-blue-700 hover:bg-blue-50 disabled:cursor-wait disabled:opacity-60">{saving ? "Menyimpan..." : "Simpan Draft"}</button>
