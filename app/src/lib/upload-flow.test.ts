@@ -1,10 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { validateUploadInput } from "./submissions";
+import { newStoragePathToDelete, replacedStoragePathToDelete, validateUploadInput } from "./submissions";
 
 const mocks = vi.hoisted(() => ({
   db: { select: vi.fn(), insert: vi.fn() },
   getActiveSettings: vi.fn(),
   processUpload: vi.fn(),
+  removeStoredFile: vi.fn(),
   requireAdmin: vi.fn(),
   readFile: vi.fn(),
   storagePath: vi.fn(),
@@ -12,7 +13,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@/db", () => ({ db: mocks.db }));
 vi.mock("@/lib/settings", () => ({ getActiveSettings: mocks.getActiveSettings }));
-vi.mock("@/lib/storage", () => ({ processUpload: mocks.processUpload, storagePath: mocks.storagePath }));
+vi.mock("@/lib/storage", () => ({ processUpload: mocks.processUpload, removeStoredFile: mocks.removeStoredFile, storagePath: mocks.storagePath }));
 vi.mock("@/lib/auth", () => ({ requireAdmin: mocks.requireAdmin }));
 vi.mock("node:fs/promises", () => ({ default: { readFile: mocks.readFile }, readFile: mocks.readFile }));
 
@@ -57,6 +58,7 @@ describe("upload flow validation", () => {
     vi.clearAllMocks();
     mocks.db.insert.mockImplementation(() => insertBuilder());
     mocks.processUpload.mockImplementation(async (_file, submissionKey) => ({ storagePath: `${submissionKey}.jpg`, fileSize: 12, mimeType: "image/jpeg" }));
+    mocks.removeStoredFile.mockResolvedValue(undefined);
   });
 
   it("requires only a name in free mode", () => {
@@ -70,7 +72,7 @@ describe("upload flow validation", () => {
 
   it("accepts free uploads without trusting client class or student fields", async () => {
     mocks.getActiveSettings.mockResolvedValue({ mode: "free" });
-    const response = await POST(uploadRequest({ name: " Budi ", classId: "99", studentId: "99" }));
+    const response = await POST(uploadRequest({ mode: "free", name: " Budi ", classId: "99", studentId: "99" }));
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ message: "Terimakasih Telah Mensubmit. Foto berhasil diunggah." });
@@ -93,10 +95,19 @@ describe("upload flow validation", () => {
     expect(insertCalls[1].studentId).toBeNull();
   });
 
+  it("rejects a free-shaped upload when list mode is active", async () => {
+    mocks.getActiveSettings.mockResolvedValue({ mode: "list" });
+
+    const response = await POST(uploadRequest({ mode: "free", name: "Budi" }));
+
+    expect(response.status).toBe(400);
+    expect(mocks.db.insert).not.toHaveBeenCalled();
+  });
+
   it("rejects a list-shaped upload when free mode is active", async () => {
     mocks.getActiveSettings.mockResolvedValue({ mode: "free" });
 
-    const response = await POST(uploadRequest({ classId: "1", studentId: "1" }));
+    const response = await POST(uploadRequest({ mode: "list", classId: "1", studentId: "1" }));
 
     expect(response.status).toBe(400);
     expect(mocks.db.insert).not.toHaveBeenCalled();
@@ -104,7 +115,7 @@ describe("upload flow validation", () => {
 
   it("snapshots the selected student and class for list uploads", async () => {
     mocks.getActiveSettings.mockResolvedValue({ mode: "list" });
-    mocks.db.select.mockReturnValue(queryBuilder([{ id: 7, studentId: "NIS-7", name: "Budi", attendanceNumber: 3, nisn: "NISN-7", className: "X TKJ" }]));
+    mocks.db.select.mockReturnValue(queryBuilder([{ id: 7, studentId: "NIS-7", name: "Budi", attendanceNumber: 3, nisn: "NISN-7", className: "X TKJ", previousStoragePath: null }]));
 
     const response = await POST(uploadRequest({ classId: "2", studentId: "7" }));
 
@@ -114,6 +125,44 @@ describe("upload flow validation", () => {
     expect(values.submissionKey).toMatch(/^[a-f0-9]{32}$/);
     expect(values.storagePath).toBe(`${values.submissionKey}.jpg`);
     expect(mocks.processUpload).toHaveBeenCalledWith(expect.any(File), values.submissionKey);
+  });
+
+  it("deletes only an unshared prior path after a successful replacement", () => {
+    expect(replacedStoragePathToDelete("old.jpg", "new.jpg", false)).toBe("old.jpg");
+    expect(replacedStoragePathToDelete("old.jpg", "old.jpg", false)).toBeNull();
+    expect(replacedStoragePathToDelete("old.jpg", "new.jpg", true)).toBeNull();
+    expect(replacedStoragePathToDelete(null, "new.jpg", false)).toBeNull();
+    expect(newStoragePathToDelete("new.jpg", "old.jpg")).toBe("new.jpg");
+    expect(newStoragePathToDelete("old.jpg", "old.jpg")).toBeNull();
+    expect(newStoragePathToDelete(undefined, "old.jpg")).toBeNull();
+  });
+
+  it("deletes a newly written list file when the database write fails", async () => {
+    mocks.getActiveSettings.mockResolvedValue({ mode: "list" });
+    mocks.db.select.mockReturnValue(queryBuilder([{ id: 7, studentId: "NIS-7", name: "Budi", attendanceNumber: 3, className: "X TKJ", previousStoragePath: "old.jpg" }]));
+    const failingInsert = insertBuilder();
+    failingInsert.onDuplicateKeyUpdate.mockRejectedValue(new Error("DB failed"));
+    mocks.db.insert.mockReturnValue(failingInsert);
+
+    const response = await POST(uploadRequest({ mode: "list", classId: "2", studentId: "7" }));
+
+    expect(response.status).toBe(400);
+    expect(mocks.removeStoredFile).toHaveBeenCalledWith(expect.stringMatching(/^[a-f0-9]{32}\.jpg$/));
+    expect(mocks.removeStoredFile).not.toHaveBeenCalledWith("old.jpg");
+  });
+
+  it("keeps a prior path when another submission still uses it", async () => {
+    mocks.getActiveSettings.mockResolvedValue({ mode: "list" });
+    const selectResults = [
+      [{ id: 7, studentId: "NIS-7", name: "Budi", attendanceNumber: 3, className: "X TKJ", previousStoragePath: "shared.jpg" }],
+      [{ id: 99 }],
+    ];
+    mocks.db.select.mockImplementation(() => queryBuilder(selectResults.shift() ?? []));
+
+    const response = await POST(uploadRequest({ mode: "list", classId: "2", studentId: "7" }));
+
+    expect(response.status).toBe(200);
+    expect(mocks.removeStoredFile).not.toHaveBeenCalledWith("shared.jpg");
   });
 
   it("derives pending status for students without a submission", async () => {

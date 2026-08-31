@@ -27,4 +27,12 @@ export function storagePath(filename: string) {
   return resolved;
 }
 
+export async function removeStoredFile(filename: string) {
+  try {
+    await fs.unlink(storagePath(filename));
+  } catch {
+    // Cleanup must not mask the upload or database result.
+  }
+}
+
 export { uploadDir };

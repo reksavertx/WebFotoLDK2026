@@ -36,6 +36,16 @@ export function validateUploadInput(input: {
   return { classId, studentId };
 }
 
+export function replacedStoragePathToDelete(previousPath: string | null | undefined, nextPath: string, usedByAnotherSubmission: boolean): string | null {
+  if (!previousPath || previousPath === nextPath || usedByAnotherSubmission) return null;
+  return previousPath;
+}
+
+export function newStoragePathToDelete(newPath: string | undefined, previousPath: string | null | undefined): string | null {
+  if (!newPath || newPath === previousPath) return null;
+  return newPath;
+}
+
 export function freeSubmissionFilename(submissionKey: string, name: string, extension: string): string {
   return sanitizeFilename(`${submissionKey} - ${name}.${extension}`);
 }

@@ -1,13 +1,24 @@
 import { randomUUID } from "node:crypto";
-import { and, eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import { db } from "@/db";
 import { classes, photoSubmissions, students } from "@/db/schema";
 import { getActiveSettings } from "@/lib/settings";
-import { processUpload } from "@/lib/storage";
-import { validateUploadInput } from "@/lib/submissions";
+import { processUpload, removeStoredFile } from "@/lib/storage";
+import { newStoragePathToDelete, replacedStoragePathToDelete, validateUploadInput } from "@/lib/submissions";
 
 function createSubmissionKey() {
   return randomUUID().replaceAll("-", "");
+}
+
+async function cleanupReplacedListFile(previousPath: string | null | undefined, nextPath: string, submissionKey: string) {
+  if (!previousPath || previousPath === nextPath) return;
+  try {
+    const [otherSubmission] = await db.select({ id: photoSubmissions.id }).from(photoSubmissions).where(and(eq(photoSubmissions.storagePath, previousPath), ne(photoSubmissions.submissionKey, submissionKey))).limit(1);
+    const pathToDelete = replacedStoragePathToDelete(previousPath, nextPath, Boolean(otherSubmission));
+    if (pathToDelete) await removeStoredFile(pathToDelete);
+  } catch {
+    // The replacement is committed; leave the old file when sharing cannot be verified.
+  }
 }
 
 export async function POST(request: Request) {
@@ -23,14 +34,31 @@ export async function POST(request: Request) {
 
     if (activeMode === "free") {
       const { name } = validateUploadInput({ mode: "free", name: form.get("name") });
-      const processed = await processUpload(file, submissionKey);
-      await db.insert(photoSubmissions).values({ submissionKey, sourceMode: "free", studentId: null, name, className: null, attendanceNumber: null, nis: null, storagePath: processed.storagePath, originalFilename: file.name, mimeType: processed.mimeType, fileSize: processed.fileSize, status: "uploaded", uploadedAt: now, updatedAt: now }).onDuplicateKeyUpdate({ set: { submissionKey, storagePath: processed.storagePath, originalFilename: file.name, mimeType: processed.mimeType, fileSize: processed.fileSize, status: "uploaded", uploadedAt: now, updatedAt: now } });
+      let newStoragePath: string | undefined;
+      try {
+        const processed = await processUpload(file, submissionKey);
+        newStoragePath = processed.storagePath;
+        await db.insert(photoSubmissions).values({ submissionKey, sourceMode: "free", studentId: null, name, className: null, attendanceNumber: null, nis: null, storagePath: processed.storagePath, originalFilename: file.name, mimeType: processed.mimeType, fileSize: processed.fileSize, status: "uploaded", uploadedAt: now, updatedAt: now }).onDuplicateKeyUpdate({ set: { submissionKey, storagePath: processed.storagePath, originalFilename: file.name, mimeType: processed.mimeType, fileSize: processed.fileSize, status: "uploaded", uploadedAt: now, updatedAt: now } });
+      } catch (error) {
+        const pathToDelete = newStoragePathToDelete(newStoragePath, null);
+        if (pathToDelete) await removeStoredFile(pathToDelete);
+        throw error;
+      }
     } else {
       const { classId, studentId } = validateUploadInput({ mode: "list", classId: form.get("classId"), studentId: form.get("studentId") });
-      const [student] = await db.select({ id: students.id, studentId: students.studentId, name: students.name, attendanceNumber: students.attendanceNumber, className: classes.name }).from(students).innerJoin(classes, eq(classes.id, students.classId)).where(and(eq(students.id, studentId), eq(students.classId, classId))).limit(1);
+      const [student] = await db.select({ id: students.id, studentId: students.studentId, name: students.name, attendanceNumber: students.attendanceNumber, className: classes.name, previousStoragePath: photoSubmissions.storagePath }).from(students).innerJoin(classes, eq(classes.id, students.classId)).leftJoin(photoSubmissions, eq(photoSubmissions.studentId, students.id)).where(and(eq(students.id, studentId), eq(students.classId, classId))).limit(1);
       if (!student) return Response.json({ error: "Nama siswa tidak ditemukan." }, { status: 404 });
-      const processed = await processUpload(file, submissionKey);
-      await db.insert(photoSubmissions).values({ submissionKey, sourceMode: "list", studentId: student.id, name: student.name, className: student.className, attendanceNumber: student.attendanceNumber, nis: student.studentId, storagePath: processed.storagePath, originalFilename: file.name, mimeType: processed.mimeType, fileSize: processed.fileSize, status: "uploaded", uploadedAt: now, updatedAt: now }).onDuplicateKeyUpdate({ set: { submissionKey, name: student.name, className: student.className, attendanceNumber: student.attendanceNumber, nis: student.studentId, storagePath: processed.storagePath, originalFilename: file.name, mimeType: processed.mimeType, fileSize: processed.fileSize, status: "uploaded", uploadedAt: now, updatedAt: now } });
+      let newStoragePath: string | undefined;
+      try {
+        const processed = await processUpload(file, submissionKey);
+        newStoragePath = processed.storagePath;
+        await db.insert(photoSubmissions).values({ submissionKey, sourceMode: "list", studentId: student.id, name: student.name, className: student.className, attendanceNumber: student.attendanceNumber, nis: student.studentId, storagePath: processed.storagePath, originalFilename: file.name, mimeType: processed.mimeType, fileSize: processed.fileSize, status: "uploaded", uploadedAt: now, updatedAt: now }).onDuplicateKeyUpdate({ set: { submissionKey, name: student.name, className: student.className, attendanceNumber: student.attendanceNumber, nis: student.studentId, storagePath: processed.storagePath, originalFilename: file.name, mimeType: processed.mimeType, fileSize: processed.fileSize, status: "uploaded", uploadedAt: now, updatedAt: now } });
+        await cleanupReplacedListFile(student.previousStoragePath, processed.storagePath, submissionKey);
+      } catch (error) {
+        const pathToDelete = newStoragePathToDelete(newStoragePath, student.previousStoragePath);
+        if (pathToDelete) await removeStoredFile(pathToDelete);
+        throw error;
+      }
     }
     return Response.json({ message: "Terimakasih Telah Mensubmit. Foto berhasil diunggah." });
   } catch (error) {
