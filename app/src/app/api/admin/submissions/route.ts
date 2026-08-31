@@ -1,4 +1,4 @@
-import { and, asc, eq, ilike, isNull, or, sql } from "drizzle-orm";
+import { and, asc, eq, isNull, like, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { classes, photoSubmissions, students } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth";
@@ -21,10 +21,10 @@ export async function GET(request: Request) {
   if (settings.mode === "free") {
     const filters = [eq(photoSubmissions.sourceMode, "free")];
     if (status === "uploaded" || status === "blur") filters.push(eq(photoSubmissions.status, status));
-    if (search) filters.push(ilike(photoSubmissions.name, `%${search}%`));
+    if (search) filters.push(like(photoSubmissions.name, `%${search}%`));
 
     const rows = status === "pending" ? [] : await db
-      .select({ submissionKey: photoSubmissions.submissionKey, name: photoSubmissions.name, className: photoSubmissions.className, status: photoSubmissions.status, uploadedAt: photoSubmissions.uploadedAt })
+      .select({ submissionKey: photoSubmissions.submissionKey, name: photoSubmissions.name, status: photoSubmissions.status, uploadedAt: photoSubmissions.uploadedAt })
       .from(photoSubmissions)
       .where(and(...filters))
       .orderBy(asc(photoSubmissions.uploadedAt), asc(photoSubmissions.submissionKey));
@@ -44,7 +44,7 @@ export async function GET(request: Request) {
   if (Number.isInteger(classId) && classId > 0) rowFilters.push(eq(students.classId, classId));
   if (status === "pending") rowFilters.push(isNull(photoSubmissions.id));
   if (status === "uploaded" || status === "blur") rowFilters.push(eq(photoSubmissions.status, status));
-  if (search) rowFilters.push(or(ilike(students.name, `%${search}%`), ilike(students.studentId, `%${search}%`))!);
+  if (search) rowFilters.push(or(like(students.name, `%${search}%`), like(students.studentId, `%${search}%`))!);
 
   const rows = await db
     .select({
