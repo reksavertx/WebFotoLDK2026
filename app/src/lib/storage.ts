@@ -15,9 +15,14 @@ export async function processUpload(file: File, submissionKey: string) {
   await fs.mkdir(uploadDir, { recursive: true });
   const filename = `${submissionKey}.jpg`;
   const absolutePath = storagePath(filename);
-  await sharp(input).rotate().resize({ width: 1600, height: 1600, fit: "inside", withoutEnlargement: true }).jpeg({ quality: 82 }).toFile(absolutePath);
-  const stat = await fs.stat(absolutePath);
-  return { storagePath: filename, absolutePath, fileSize: stat.size, mimeType: "image/jpeg" };
+  try {
+    await sharp(input).rotate().resize({ width: 1600, height: 1600, fit: "inside", withoutEnlargement: true }).jpeg({ quality: 82 }).toFile(absolutePath);
+    const stat = await fs.stat(absolutePath);
+    return { storagePath: filename, absolutePath, fileSize: stat.size, mimeType: "image/jpeg" };
+  } catch (error) {
+    await removeStoredFile(filename);
+    throw error;
+  }
 }
 
 export function storagePath(filename: string) {

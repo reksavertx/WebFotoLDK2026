@@ -41,11 +41,6 @@ export function replacedStoragePathToDelete(previousPath: string | null | undefi
   return previousPath;
 }
 
-export function newStoragePathToDelete(newPath: string | undefined, previousPath: string | null | undefined): string | null {
-  if (!newPath || newPath === previousPath) return null;
-  return newPath;
-}
-
 export function freeSubmissionFilename(submissionKey: string, name: string, extension: string): string {
   return sanitizeFilename(`${submissionKey} - ${name}.${extension}`);
 }

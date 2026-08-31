@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { newStoragePathToDelete, replacedStoragePathToDelete, validateUploadInput } from "./submissions";
+import { replacedStoragePathToDelete, validateUploadInput } from "./submissions";
 
 const mocks = vi.hoisted(() => ({
   db: { select: vi.fn(), insert: vi.fn() },
@@ -132,12 +132,9 @@ describe("upload flow validation", () => {
     expect(replacedStoragePathToDelete("old.jpg", "old.jpg", false)).toBeNull();
     expect(replacedStoragePathToDelete("old.jpg", "new.jpg", true)).toBeNull();
     expect(replacedStoragePathToDelete(null, "new.jpg", false)).toBeNull();
-    expect(newStoragePathToDelete("new.jpg", "old.jpg")).toBe("new.jpg");
-    expect(newStoragePathToDelete("old.jpg", "old.jpg")).toBeNull();
-    expect(newStoragePathToDelete(undefined, "old.jpg")).toBeNull();
   });
 
-  it("deletes a newly written list file when the database write fails", async () => {
+  it("keeps a newly written list file when the database write outcome is ambiguous", async () => {
     mocks.getActiveSettings.mockResolvedValue({ mode: "list" });
     mocks.db.select.mockReturnValue(queryBuilder([{ id: 7, studentId: "NIS-7", name: "Budi", attendanceNumber: 3, className: "X TKJ", previousStoragePath: "old.jpg" }]));
     const failingInsert = insertBuilder();
@@ -147,8 +144,7 @@ describe("upload flow validation", () => {
     const response = await POST(uploadRequest({ mode: "list", classId: "2", studentId: "7" }));
 
     expect(response.status).toBe(400);
-    expect(mocks.removeStoredFile).toHaveBeenCalledWith(expect.stringMatching(/^[a-f0-9]{32}\.jpg$/));
-    expect(mocks.removeStoredFile).not.toHaveBeenCalledWith("old.jpg");
+    expect(mocks.removeStoredFile).not.toHaveBeenCalled();
   });
 
   it("keeps a prior path when another submission still uses it", async () => {
