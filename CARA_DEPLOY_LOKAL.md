@@ -99,6 +99,8 @@ Seed membaca `data/daftar_siswa_kelas_x.csv`, membuat kelas dan siswa, lalu memb
 Seeded 359 students in 10 classes.
 ```
 
+Migration juga membuat pengaturan event default dalam mode `Sesuai daftar`. Setelah login, admin dapat mengganti mode form, judul, tahun, dan deskripsi dari `/admin/form`.
+
 ## 6. Jalankan Aplikasi
 
 ### Mode Development
@@ -117,6 +119,14 @@ npm start
 ```
 
 Aplikasi berjalan di `http://localhost:3000` sebagai production server.
+
+Menu admin:
+
+- `http://localhost:3000/admin` — Dashboard Data Foto
+- `http://localhost:3000/admin/form` — Pengaturan Form
+- `http://localhost:3000/admin/reuse` — Gunakan Kembali Web
+
+Untuk memakai aplikasi pada event berikutnya, backup terlebih dahulu bila diperlukan, buka menu Gunakan Kembali Web, pilih **Hapus Semua Data Foto**, lalu upload dan terapkan CSV roster baru melalui preview. CSV baru harus memakai format `NO,NIS,NISN,NAMA,KELAS` dan foto harus sudah kosong sebelum roster dapat diganti.
 
 ---
 

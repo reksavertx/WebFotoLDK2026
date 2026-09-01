@@ -187,12 +187,19 @@ Kirim multipart field `file`. Tanpa field `commit=true`, endpoint mengembalikan 
 GET    /api/classes
 GET    /api/classes/:id/students
 POST   /api/photos/upload
+GET    /api/settings
 POST   /api/admin/login
 POST   /api/admin/logout
-GET    /api/admin/students
+GET    /api/admin/settings
+PUT    /api/admin/settings
+POST   /api/admin/settings/activate
+GET    /api/admin/submissions
 PATCH  /api/admin/photos/:id/status
 GET    /api/admin/names?status=pending|blur
 GET    /api/admin/export/:classId
+POST   /api/admin/reuse/clear-photos
+POST   /api/admin/reuse/roster/preview
+POST   /api/admin/reuse/roster/commit
 GET    /api/export/class/:classId?format=json|csv
 ```
 
