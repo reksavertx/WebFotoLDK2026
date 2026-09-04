@@ -23,6 +23,7 @@ vi.mock("@/db", () => ({
     select: () => ({
       from: (table: unknown) => {
         repository.selectedTables.push(table);
+        if (table === photoSubmissions) return { where: () => ({ limit: async () => repository.existingSubmissions }) };
         return { where: () => ({ limit: async () => [repository.row] }) };
       },
     }),
@@ -56,7 +57,7 @@ import {
   mapActiveSettings,
   validateEventSettings,
 } from "./settings";
-import { eventSettings } from "@/db/schema";
+import { eventSettings, photoSubmissions } from "@/db/schema";
 
 describe("event settings", () => {
   beforeEach(() => {

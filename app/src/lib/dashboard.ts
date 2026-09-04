@@ -81,7 +81,7 @@ export function groupSubmissionRows(rows: SubmissionRow[], view: DashboardView):
     if (view !== "all" && row.sourceMode !== view) continue;
 
     const isFree = row.sourceMode === "free";
-    const key = isFree ? "free" : row.className ?? "unknown";
+    const key = isFree ? "free" : row.className === null || row.className === undefined ? "class-missing" : `class:${row.className}`;
     const existing = groups.get(key);
     const group = existing ?? {
       type: isFree ? "free" : "class",
@@ -100,7 +100,7 @@ export function groupSubmissionRows(rows: SubmissionRow[], view: DashboardView):
     groups.set(key, group);
   }
 
-  return [...groups.values()].sort((a, b) => b.pending - a.pending);
+  return [...groups.values()];
 }
 
 export function buildAdminExportUrl(classId: string, all = false) {
