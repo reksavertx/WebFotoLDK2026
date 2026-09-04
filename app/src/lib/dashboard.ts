@@ -1,4 +1,4 @@
-import type { PhotoStatus } from "./domain";
+import { sanitizeFilename, type PhotoStatus } from "./domain";
 
 export type DashboardView = "all" | "list" | "free";
 
@@ -88,6 +88,23 @@ export function normalizeDashboardView(value: string | null | undefined): Dashbo
   return value === "list" || value === "free" || value === "all" ? value : "all";
 }
 
+export function normalizeDashboardExportView(value: string | null | undefined, activeMode: Exclude<DashboardView, "all">): DashboardView {
+  return value === "list" || value === "free" || value === "all" ? value : activeMode;
+}
+
+export function resolveDashboardExportSources(classId: string, view: DashboardView): ("list" | "free")[] | null {
+  if (classId !== "all") return view === "free" ? null : ["list"];
+  if (view === "all") return ["list", "free"];
+  return [view];
+}
+
+export function buildDashboardArchiveEntryName(row: Pick<SubmissionRow, "sourceMode" | "className">, filename: string, includeSourceFolders: boolean) {
+  if (!includeSourceFolders) return filename;
+  const classFolder = sanitizeFilename(row.className ?? "");
+  const folder = row.sourceMode === "free" ? "Nama Bebas" : classFolder && classFolder !== "." && classFolder !== ".." ? classFolder : "Tanpa Kelas";
+  return `${folder}/${filename}`;
+}
+
 export function groupSubmissionRows(rows: SubmissionRow[], view: DashboardView): SubmissionGroup[] {
   const groups = new Map<string, SubmissionGroup>();
 
@@ -118,6 +135,7 @@ export function groupSubmissionRows(rows: SubmissionRow[], view: DashboardView):
   return [...groups.values()];
 }
 
-export function buildAdminExportUrl(classId: string, all = false) {
-  return all || !classId ? "/api/admin/export/all" : `/api/admin/export/${classId}`;
+export function buildAdminExportUrl(classId: string, all = false, view?: DashboardView) {
+  const base = all || !classId ? "/api/admin/export/all" : `/api/admin/export/${classId}`;
+  return view ? `${base}?view=${view}` : base;
 }

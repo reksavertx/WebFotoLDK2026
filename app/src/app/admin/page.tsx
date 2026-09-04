@@ -124,8 +124,8 @@ export default function AdminPage() {
     }
   }
 
-  function exportZip(all = false, selectedClassId = classId) {
-    window.location.href = buildAdminExportUrl(selectedClassId, all);
+  function exportZip(all = false, selectedClassId = classId, selectedView = view) {
+    window.location.href = buildAdminExportUrl(selectedClassId, all, selectedView);
   }
 
   function changeView(nextView: DashboardView) {
@@ -192,13 +192,13 @@ export default function AdminPage() {
           {view !== "free" && <select aria-label="Filter kelas" value={classId} onChange={(event) => setClassId(event.target.value)} className="rounded-xl border border-slate-200 bg-white px-3 py-2"><option value="">Semua kelas</option>{classes.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select>}
           <select aria-label="Filter status" value={status} onChange={(event) => setStatus(event.target.value)} className="rounded-xl border border-slate-200 bg-white px-3 py-2"><option value="all">Semua status</option><option value="pending">Belum upload</option><option value="uploaded">Sudah upload</option><option value="blur">Blur</option></select>
           <input aria-label="Cari nama atau NIS" value={search} onChange={(event) => setSearch(event.target.value)} onKeyDown={(event) => event.key === "Enter" && void load()} placeholder={view === "free" ? "Cari nama submission" : "Cari nama atau NIS"} className="min-w-0 flex-1 rounded-xl border border-slate-200 px-3 py-2" />
-          <div className="flex flex-wrap gap-2"><button type="button" onClick={() => void copyNames("pending")} className="rounded-xl bg-blue-50 px-3 py-2 text-sm font-bold text-blue-700">Copy Belum Upload</button><button type="button" onClick={() => void copyNames("blur")} className="rounded-xl bg-amber-50 px-3 py-2 text-sm font-bold text-amber-700">Copy Foto Blur</button><button type="button" onClick={() => exportZip(true)} className="rounded-xl bg-slate-800 px-3 py-2 text-sm font-bold text-white">Download ZIP Semua</button></div>
+          <div className="flex flex-wrap gap-2"><button type="button" onClick={() => void copyNames("pending")} className="rounded-xl bg-blue-50 px-3 py-2 text-sm font-bold text-blue-700">Copy Belum Upload</button><button type="button" onClick={() => void copyNames("blur")} className="rounded-xl bg-amber-50 px-3 py-2 text-sm font-bold text-amber-700">Copy Foto Blur</button><button type="button" onClick={() => exportZip(true, classId, view)} className="rounded-xl bg-slate-800 px-3 py-2 text-sm font-bold text-white">Download ZIP Semua</button></div>
         </div>
         {notice && <p role="status" className="mt-3 text-sm font-semibold text-green-700">{notice}</p>}
       </section>
 
       <section aria-label={`Submission ${viewLabels[view]}`} className="space-y-3">
-        {groups.map((group) => <GroupCard key={group.key} group={group} open={openGroups.has(group.key)} onToggle={() => toggleGroup(group.key)} onExport={(selectedClassId) => exportZip(false, selectedClassId)} onPreview={setPreview} onMark={mark} />)}
+        {groups.map((group) => <GroupCard key={group.key} group={group} open={openGroups.has(group.key)} onToggle={() => toggleGroup(group.key)} onExport={(selectedClassId) => exportZip(false, selectedClassId, "list")} onPreview={setPreview} onMark={mark} />)}
         {!loading && !groups.length && <div className="rounded-2xl bg-white p-10 text-center text-sm text-slate-500 shadow-sm">{view === "free" ? "Belum ada submission foto yang cocok." : "Tidak ada siswa yang cocok dengan filter ini."}</div>}
       </section>
     </div>
