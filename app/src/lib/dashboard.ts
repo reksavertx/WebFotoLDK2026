@@ -1,3 +1,30 @@
+import type { PhotoStatus } from "./domain";
+
+export type DashboardView = "all" | "list" | "free";
+
+export type SubmissionRow = {
+  submissionKey: string | null;
+  studentId?: string | null;
+  nis?: string | null;
+  name: string;
+  className?: string | null;
+  attendanceNumber?: number | null;
+  sourceMode: Exclude<DashboardView, "all">;
+  status: PhotoStatus;
+  uploadedAt?: Date | string | null;
+  photoId?: number | null;
+};
+
+export type SubmissionGroup = {
+  type: "class" | "free";
+  key: string;
+  title: string;
+  total: number;
+  submitted: number;
+  pending: number;
+  rows: SubmissionRow[];
+};
+
 export type DashboardInput = {
   total: number;
   uploaded: number;
@@ -45,6 +72,35 @@ export function buildSubmissionStats(input: SubmissionStatsInput) {
     pendingPercentage,
     byClass: input.byClass ?? [],
   };
+}
+
+export function groupSubmissionRows(rows: SubmissionRow[], view: DashboardView): SubmissionGroup[] {
+  const groups = new Map<string, SubmissionGroup>();
+
+  for (const row of rows) {
+    if (view !== "all" && row.sourceMode !== view) continue;
+
+    const isFree = row.sourceMode === "free";
+    const key = isFree ? "free" : row.className ?? "unknown";
+    const existing = groups.get(key);
+    const group = existing ?? {
+      type: isFree ? "free" : "class",
+      key,
+      title: isFree ? "Nama Bebas" : row.className ?? "Tanpa Kelas",
+      total: 0,
+      submitted: 0,
+      pending: 0,
+      rows: [],
+    };
+
+    group.total += 1;
+    if (row.status === "pending") group.pending += 1;
+    else group.submitted += 1;
+    group.rows.push(row);
+    groups.set(key, group);
+  }
+
+  return [...groups.values()].sort((a, b) => b.pending - a.pending);
 }
 
 export function buildAdminExportUrl(classId: string, all = false) {

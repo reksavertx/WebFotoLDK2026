@@ -1,5 +1,54 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const repository = vi.hoisted(() => ({
+  row: {
+    id: 1,
+    draftMode: "free",
+    draftTitle: "Draft event",
+    draftYear: "2027",
+    draftDescription: "Draft description",
+    activeMode: "list",
+    activeTitle: "Live event",
+    activeYear: "2026",
+    activeDescription: "Live description",
+  },
+  existingSubmissions: [{ submissionKey: "existing-photo" }],
+  selectedTables: [] as unknown[],
+  updateSets: [] as Record<string, unknown>[],
+  deleteCalls: 0,
+}));
+
+vi.mock("@/db", () => ({
+  db: {
+    select: () => ({
+      from: (table: unknown) => {
+        repository.selectedTables.push(table);
+        return { where: () => ({ limit: async () => [repository.row] }) };
+      },
+    }),
+    update: () => ({
+      set: (set: Record<string, unknown>) => ({
+        where: async () => {
+          repository.updateSets.push(set);
+          repository.row = {
+            ...repository.row,
+            activeMode: repository.row.draftMode,
+            activeTitle: repository.row.draftTitle,
+            activeYear: repository.row.draftYear,
+            activeDescription: repository.row.draftDescription,
+          };
+        },
+      }),
+    }),
+    delete: () => {
+      repository.deleteCalls += 1;
+      throw new Error("activation must not delete submissions");
+    },
+  },
+}));
+
 import {
+  activateSettings,
   applyDraftToActive,
   buildDraftUpdate,
   defaultEventSettings,
@@ -7,8 +56,26 @@ import {
   mapActiveSettings,
   validateEventSettings,
 } from "./settings";
+import { eventSettings } from "@/db/schema";
 
 describe("event settings", () => {
+  beforeEach(() => {
+    repository.row = {
+      id: 1,
+      draftMode: "free",
+      draftTitle: "Draft event",
+      draftYear: "2027",
+      draftDescription: "Draft description",
+      activeMode: "list",
+      activeTitle: "Live event",
+      activeYear: "2026",
+      activeDescription: "Live description",
+    };
+    repository.selectedTables.length = 0;
+    repository.updateSets.length = 0;
+    repository.deleteCalls = 0;
+  });
+
   it("keeps the current LDK defaults in list mode", () => {
     expect(defaultEventSettings).toEqual({
       mode: "list",
@@ -88,6 +155,27 @@ describe("event settings", () => {
       activeYear: "2027",
       activeDescription: "Draft description",
     });
+  });
+
+  it("activates settings without changing existing submissions", async () => {
+    const active = await activateSettings();
+
+    expect(repository.existingSubmissions).toEqual([{ submissionKey: "existing-photo" }]);
+    expect(active).toEqual({ mode: "free", title: "Draft event", year: "2027", description: "Draft description" });
+    expect(repository.row).toMatchObject({
+      draftMode: "free",
+      draftTitle: "Draft event",
+      draftYear: "2027",
+      draftDescription: "Draft description",
+      activeMode: "free",
+      activeTitle: "Draft event",
+      activeYear: "2027",
+      activeDescription: "Draft description",
+    });
+    expect(repository.selectedTables).toEqual([eventSettings]);
+    expect(repository.updateSets).toHaveLength(1);
+    expect(Object.keys(repository.updateSets[0])).toEqual(["activeMode", "activeTitle", "activeYear", "activeDescription", "updatedAt"]);
+    expect(repository.deleteCalls).toBe(0);
   });
 
   it("uses current LDK defaults for a new settings row", () => {
