@@ -141,7 +141,8 @@ export async function GET(request: Request) {
 
   const settings = await getActiveSettings();
   const url = new URL(request.url);
-  const view = normalizeDashboardView(url.searchParams.get("view"));
+  const requestedView = url.searchParams.get("view");
+  const view = requestedView === null ? settings.mode : normalizeDashboardView(requestedView);
   const status = normalizeStatus(url.searchParams.get("status"));
   const classId = Number(url.searchParams.get("classId") ?? 0);
   const search = url.searchParams.get("search")?.trim() ?? "";
@@ -153,6 +154,7 @@ export async function GET(request: Request) {
   const rows = sources.flatMap((source) => source.rows);
   return Response.json({
     activeMode: settings.mode,
+    mode: settings.mode,
     view,
     settings,
     stats: combineStats(sources, view),

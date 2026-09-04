@@ -84,6 +84,7 @@ describe("admin submissions API", () => {
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({
       activeMode: "list",
+      mode: "list",
       view: "all",
       settings: { mode: "list", title: "Event", year: "2026", description: "Description" },
       stats: {
@@ -138,11 +139,33 @@ describe("admin submissions API", () => {
 
     expect(response.status).toBe(200);
     const body = await response.json();
+    expect(body.activeMode).toBe("list");
+    expect(body.mode).toBe("list");
     expect(body.view).toBe("free");
     expect(body.rows).toEqual(freeRows);
     expect(body.rows[0]).not.toHaveProperty("className");
     expect(body.groups).toMatchObject([{ type: "free", key: "free", classId: null, title: "Nama Bebas", total: 1, submitted: 1, pending: 0 }]);
     expect(mocks.db.select).toHaveBeenCalledTimes(2);
+  });
+
+  it("falls back to the active mode when view is omitted", async () => {
+    mocks.getActiveSettings.mockResolvedValue({ mode: "free", title: "Event", year: "2026", description: "Description" });
+    const freeRows = [{
+      submissionKey: "free-3",
+      name: "Free Student",
+      status: "uploaded" as const,
+      uploadedAt: "2026-09-04T12:00:00.000Z",
+      photoId: 44,
+    }];
+    const results: unknown[][] = [freeRows, [{ total: 1, uploaded: 1, blur: 0 }]];
+    mocks.db.select.mockImplementation(() => queryBuilder(results.shift() ?? []));
+
+    const response = await GET(new Request("http://localhost/api/admin/submissions?status=all"));
+
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body).toMatchObject({ activeMode: "free", mode: "free", view: "free" });
+    expect(body.rows).toEqual(freeRows.map((row) => ({ ...row, sourceMode: "free" })));
   });
 
   it("keeps admin authentication on the view-aware route", async () => {
