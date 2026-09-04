@@ -131,14 +131,14 @@ Menu admin:
 Dashboard tidak dibatasi oleh mode form publik yang aktif. Pada dropdown tampilan, pilih:
 
 - **Semua** untuk melihat submission `Sesuai daftar` dan `Nama bebas` sekaligus.
-- **Sesuai daftar** untuk melihat seluruh siswa dari roster, termasuk placeholder `Belum upload`. Filter kelas hanya tersedia pada tampilan ini.
+- **Sesuai daftar** untuk melihat seluruh siswa dari roster, termasuk placeholder `Belum upload`. Filter kelas berlaku untuk data sumber daftar dan tersedia pada tampilan `Semua` serta `Sesuai daftar`.
 - **Nama bebas** untuk melihat submission dengan nama yang diketik peserta. Nama yang sama dapat muncul pada beberapa submission.
 
-Filter status dapat diubah ke `Semua status`, `Belum upload`, `Sudah upload`, atau `Blur`. Gunakan kotak pencarian untuk nama/NIS, atau nama submission pada tampilan `Nama bebas`. Setiap kelas dan grup `Nama Bebas` ditampilkan sebagai accordion yang awalnya tertutup. Buka headernya untuk melihat kartu, progress upload, dan tombol `ZIP kelas`.
+Filter status dapat diubah ke `Semua status`, `Belum upload`, `Sudah upload`, atau `Blur`. Gunakan kotak pencarian untuk nama/NIS, atau nama submission pada tampilan `Nama bebas`. Setiap kelas dan grup `Nama Bebas` ditampilkan sebagai accordion yang awalnya tertutup. Buka header kelas untuk melihat kartu, progress upload, dan tombol `ZIP kelas`; grup `Nama Bebas` hanya berisi kartu submission dan tidak memiliki ZIP kelas.
 
 Kartu foto menggunakan thumbnail agar dashboard ringan. Klik thumbnail atau nama siswa untuk membuka preview berukuran besar. Kartu yang belum memiliki foto tetap terlihat sebagai placeholder dan tidak dapat dibuka sebagai preview.
 
-`ZIP kelas` hanya tersedia untuk submission sesuai daftar. `Download ZIP Semua` mengikuti tampilan yang dipilih: `Sesuai daftar` mengunduh `Semua Kelas.zip`, `Nama bebas` mengunduh foto bebas, sedangkan `Semua` menggabungkan kedua sumber dalam folder kelas dan `Nama Bebas` yang terpisah.
+`ZIP kelas` hanya tersedia untuk data sumber sesuai daftar, bukan untuk tampilan atau grup `Nama bebas`. `Download ZIP Semua` mengikuti tampilan yang dipilih: `Sesuai daftar` mengunduh `Semua Kelas.zip`, `Nama bebas` mengunduh foto bebas, sedangkan `Semua` menggabungkan kedua sumber dalam folder kelas dan `Nama Bebas` yang terpisah.
 
 Mengubah dan mengaktifkan mode form di `/admin/form` tidak menghapus submission lama. Mode tersebut hanya berlaku untuk upload publik berikutnya. Setelah berpindah mode, gunakan filter dashboard untuk memeriksa submission dari mode sebelumnya. Penghapusan data adalah tindakan terpisah dan permanen melalui `Gunakan Kembali Web` > `Hapus Semua Data Foto`; backup dahulu sebelum menggunakan menu tersebut.
 

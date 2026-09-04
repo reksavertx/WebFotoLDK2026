@@ -1,11 +1,11 @@
 # WebFoto
 
-WebFoto adalah sistem pengumpulan dan validasi foto siswa. Siswa tidak perlu membuat akun: mereka memilih kelas, memilih nama dari daftar sekolah, lalu mengunggah foto. Admin dapat memantau status, menandai foto blur, menyalin daftar nama, import siswa, dan mengunduh ZIP.
+WebFoto adalah sistem pengumpulan dan validasi foto siswa. Siswa tidak perlu membuat akun: mereka memilih kelas dan nama dari daftar sekolah atau mengetik nama sendiri, lalu mengunggah foto. Admin dapat memantau status, menandai foto blur, menyalin daftar nama, import siswa, dan mengunduh ZIP.
 
 ## Fitur
 
 - Form siswa mobile-friendly tanpa login.
-- Identitas siswa berasal dari database, bukan input nama bebas.
+- Identitas siswa dapat dipilih dari database dalam mode `Sesuai daftar` atau diisi sendiri dalam mode `Nama bebas`.
 - Upload JPEG, PNG, atau WEBP maksimal 5 MB.
 - Foto diputar sesuai orientasi, diperkecil, dan disimpan sebagai JPEG (.jpg).
 - Upload ulang menggantikan foto aktif sebelumnya.
@@ -79,10 +79,10 @@ Buka `http://localhost:3000`. Dashboard admin berada di `http://localhost:3000/a
 Dashboard dapat digunakan untuk meninjau submission tanpa mengikuti mode form publik yang sedang aktif. Pilih tampilan berikut pada dropdown:
 
 - **Semua** — menampilkan submission dari form `Sesuai daftar` dan `Nama bebas`.
-- **Sesuai daftar** — menampilkan seluruh siswa dalam roster, termasuk kartu placeholder `Belum upload` untuk siswa yang belum mengirim foto. Filter kelas tersedia pada tampilan ini.
+- **Sesuai daftar** — menampilkan seluruh siswa dalam roster, termasuk kartu placeholder `Belum upload` untuk siswa yang belum mengirim foto. Filter kelas berlaku untuk data sumber daftar dan tersedia pada tampilan ini.
 - **Nama bebas** — menampilkan submission yang dibuat saat peserta mengetik nama sendiri. Beberapa submission dapat memakai nama yang sama, karena identitasnya dibedakan oleh submission dan foto, bukan roster kelas.
 
-Gunakan filter status (`Semua status`, `Belum upload`, `Sudah upload`, atau `Blur`) dan pencarian. Grup kelas dan grup `Nama Bebas` selalu mulai dalam keadaan tertutup. Klik header accordion untuk membuka kartu, lalu gunakan progress kelas dan tombol `ZIP kelas` pada header untuk mengunduh foto kelas tersebut. Thumbnail foto dimuat pada kartu; klik thumbnail atau nama siswa untuk membuka preview besar. Foto yang belum ada menampilkan placeholder dan tidak memiliki preview.
+Gunakan filter status (`Semua status`, `Belum upload`, `Sudah upload`, atau `Blur`) dan pencarian. Grup kelas dan grup `Nama Bebas` selalu mulai dalam keadaan tertutup. Klik header accordion untuk membuka kartu; pada header kelas sesuai daftar tersedia progress kelas dan tombol `ZIP kelas`. Thumbnail foto dimuat pada kartu; klik thumbnail atau nama siswa untuk membuka preview besar. Foto yang belum ada menampilkan placeholder dan tidak memiliki preview.
 
 Tombol `Download ZIP Semua` mengikuti tampilan yang dipilih: tampilan `Sesuai daftar` menghasilkan `Semua Kelas.zip`, tampilan `Nama bebas` menghasilkan ZIP foto bebas, dan tampilan `Semua` menggabungkan kedua sumber dengan folder terpisah untuk kelas dan `Nama Bebas`. ZIP per kelas hanya berlaku untuk submission sesuai daftar.
 
