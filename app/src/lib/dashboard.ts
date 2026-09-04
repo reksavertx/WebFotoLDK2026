@@ -7,6 +7,7 @@ export type SubmissionRow = {
   studentId?: string | null;
   nis?: string | null;
   name: string;
+  classId?: number | null;
   className?: string | null;
   attendanceNumber?: number | null;
   sourceMode: Exclude<DashboardView, "all">;
@@ -18,6 +19,7 @@ export type SubmissionRow = {
 export type SubmissionGroup = {
   type: "class" | "free";
   key: string;
+  classId: number | null;
   title: string;
   total: number;
   submitted: number;
@@ -74,6 +76,10 @@ export function buildSubmissionStats(input: SubmissionStatsInput) {
   };
 }
 
+export function normalizeDashboardView(value: string | null | undefined): DashboardView {
+  return value === "list" || value === "free" || value === "all" ? value : "all";
+}
+
 export function groupSubmissionRows(rows: SubmissionRow[], view: DashboardView): SubmissionGroup[] {
   const groups = new Map<string, SubmissionGroup>();
 
@@ -86,6 +92,7 @@ export function groupSubmissionRows(rows: SubmissionRow[], view: DashboardView):
     const group = existing ?? {
       type: isFree ? "free" : "class",
       key,
+      classId: isFree ? null : row.classId ?? null,
       title: isFree ? "Nama Bebas" : row.className ?? "Tanpa Kelas",
       total: 0,
       submitted: 0,
