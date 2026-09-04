@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
+import { appPath } from "@/lib/paths";
 
 const links = [
   { href: "/admin", label: "Dashboard" },
@@ -36,7 +37,7 @@ export default function AdminShell({ children }: { children: ReactNode }) {
 
   async function logout() {
     try {
-      await fetch("/api/admin/logout", { method: "POST" });
+      await fetch(appPath("/api/admin/logout"), { method: "POST" });
     } finally {
       router.replace("/admin/login");
     }
@@ -51,7 +52,7 @@ export default function AdminShell({ children }: { children: ReactNode }) {
 
     <header className="flex items-center justify-between border-b border-blue-100 bg-white px-4 py-3 md:hidden">
       <Link href="/admin" className="flex items-center gap-3" onClick={() => setMobileOpen(false)}>
-        <Image src="/logo-sekolah.png" alt="Logo sekolah" width={40} height={40} className="rounded-xl object-contain" />
+        <Image src={appPath("/logo-sekolah.png")} alt="Logo sekolah" width={40} height={40} className="rounded-xl object-contain" />
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-blue-600">LDK SMK NEGERI 1 BATANG</p>
           <p className="font-black text-slate-900">Admin Foto</p>
@@ -78,7 +79,7 @@ export default function AdminShell({ children }: { children: ReactNode }) {
 function ShellContent({ pathname, onNavigate, onLogout }: { pathname: string; onNavigate: () => void; onLogout: () => void }) {
   return <>
     <div className="flex items-center gap-3 border-b border-blue-50 px-5 py-5">
-      <Image src="/logo-sekolah.png" alt="Logo sekolah" width={48} height={48} className="rounded-xl object-contain" />
+      <Image src={appPath("/logo-sekolah.png")} alt="Logo sekolah" width={48} height={48} className="rounded-xl object-contain" />
       <div>
         <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-blue-600">LDK SMK NEGERI 1 BATANG</p>
         <p className="font-black text-slate-900">Admin Foto</p>

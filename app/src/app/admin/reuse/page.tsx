@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { appPath } from "@/lib/paths";
 
 type Preview = { count: number; classes: string[] };
 type ResetResult = { deletedSubmissions: number; deletedUploadFiles: number; deletedGeneratedFiles: number; failedFiles: string[] };
@@ -19,13 +20,13 @@ export default function ReusePage() {
   const [resetCounts, setResetCounts] = useState<ResetCounts | null>(null);
 
   useEffect(() => {
-    fetch("/api/admin/reuse/clear-photos").then(async (response) => { if (!response.ok) return; setResetCounts(await response.json()); }).catch(() => undefined);
+    fetch(appPath("/api/admin/reuse/clear-photos")).then(async (response) => { if (!response.ok) return; setResetCounts(await response.json()); }).catch(() => undefined);
   }, []);
 
   async function resetPhotos() {
     setBusy(true); setError(""); setNotice("");
     try {
-      const response = await fetch("/api/admin/reuse/clear-photos", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ confirmation }) });
+      const response = await fetch(appPath("/api/admin/reuse/clear-photos"), { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ confirmation }) });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error ?? "Data foto tidak dapat dihapus.");
       const result = data as ResetResult;
@@ -41,7 +42,7 @@ export default function ReusePage() {
     if (!file) return setCsvError("Pilih file CSV terlebih dahulu.");
     setBusy(true); setCsvError(""); setPreview(null);
     const form = new FormData(); form.set("file", file);
-    try { const response = await fetch("/api/admin/reuse/roster/preview", { method: "POST", body: form }); const data = await response.json(); if (!response.ok) throw new Error(data.error); setPreview(data); } catch (previewError) { setCsvError(previewError instanceof Error ? previewError.message : "Preview CSV gagal."); } finally { setBusy(false); }
+    try { const response = await fetch(appPath("/api/admin/reuse/roster/preview"), { method: "POST", body: form }); const data = await response.json(); if (!response.ok) throw new Error(data.error); setPreview(data); } catch (previewError) { setCsvError(previewError instanceof Error ? previewError.message : "Preview CSV gagal."); } finally { setBusy(false); }
   }
 
   async function commitCsv() {
@@ -49,7 +50,7 @@ export default function ReusePage() {
     if (!file) return setCsvError("Pilih file CSV terlebih dahulu.");
     setBusy(true); setCsvError(""); setNotice("");
     const form = new FormData(); form.set("file", file); form.set("confirmation", csvConfirmation);
-    try { const response = await fetch("/api/admin/reuse/roster/commit", { method: "POST", body: form }); const data = await response.json(); if (!response.ok) throw new Error(data.error); setNotice(`${data.count} siswa dari ${data.classes} kelas berhasil diterapkan. Mode form aktif: Sesuai daftar.`); setCsvConfirmation(""); setPreview(null); if (fileRef.current) fileRef.current.value = ""; } catch (commitError) { setCsvError(commitError instanceof Error ? commitError.message : "CSV gagal diterapkan."); } finally { setBusy(false); }
+    try { const response = await fetch(appPath("/api/admin/reuse/roster/commit"), { method: "POST", body: form }); const data = await response.json(); if (!response.ok) throw new Error(data.error); setNotice(`${data.count} siswa dari ${data.classes} kelas berhasil diterapkan. Mode form aktif: Sesuai daftar.`); setCsvConfirmation(""); setPreview(null); if (fileRef.current) fileRef.current.value = ""; } catch (commitError) { setCsvError(commitError instanceof Error ? commitError.message : "CSV gagal diterapkan."); } finally { setBusy(false); }
   }
 
   return <div className="min-h-screen bg-slate-50 px-4 py-6 sm:px-6 lg:px-8"><div className="mx-auto max-w-5xl space-y-6"><header className="border-b border-blue-100 pb-6"><p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-600">Panel Admin</p><h1 className="mt-1 text-2xl font-black text-slate-900 sm:text-3xl">Gunakan Kembali Web</h1><p className="mt-2 max-w-2xl text-sm text-slate-500">Reset foto dan ganti roster siswa untuk event berikutnya. Backup dilakukan manual sebelum reset.</p></header>

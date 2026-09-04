@@ -1,4 +1,5 @@
 import { sanitizeFilename, type PhotoStatus } from "./domain";
+import { appPath } from "./paths";
 
 export type DashboardView = "all" | "list" | "free";
 
@@ -137,5 +138,5 @@ export function groupSubmissionRows(rows: SubmissionRow[], view: DashboardView):
 
 export function buildAdminExportUrl(classId: string, all = false, view?: DashboardView) {
   const base = all || !classId ? "/api/admin/export/all" : `/api/admin/export/${classId}`;
-  return view ? `${base}?view=${view}` : base;
+  return appPath(view ? `${base}?view=${view}` : base);
 }

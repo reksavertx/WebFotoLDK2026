@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { parseActiveSettings, parseStudentRows, type PublicSettings, type StudentRow } from "@/lib/public-form";
+import { appPath } from "@/lib/paths";
 
 type ClassRow = { id: number; name: string };
 type Mode = PublicSettings["mode"];
@@ -50,7 +51,7 @@ export default function HomePage() {
 
   useEffect(() => {
     void loadSettings();
-    void fetch("/api/classes").then((r) => r.json()).then(setClasses).catch(() => setClasses([]));
+    void fetch(appPath("/api/classes")).then((r) => r.json()).then(setClasses).catch(() => setClasses([]));
     return () => settingsRequest.current?.abort();
   }, []);
 
@@ -61,7 +62,7 @@ export default function HomePage() {
     setSettingsLoading(true);
     setSettingsError("");
     try {
-      const response = await fetch("/api/settings", { signal: controller.signal });
+      const response = await fetch(appPath("/api/settings"), { signal: controller.signal });
       if (!response.ok) throw new Error("Pengaturan aktif tidak dapat dimuat.");
       const nextSettings = parseActiveSettings(await response.json());
       if (controller.signal.aborted) return;
@@ -84,7 +85,7 @@ export default function HomePage() {
     if (!classId || mode !== "list") { setStudents([]); return; }
     const controller = new AbortController();
     setStudents([]);
-    void fetch(`/api/classes/${classId}/students`, { signal: controller.signal }).then(async (response) => {
+    void fetch(appPath(`/api/classes/${classId}/students`), { signal: controller.signal }).then(async (response) => {
       if (!response.ok) throw new Error("Daftar siswa untuk kelas ini tidak dapat dimuat.");
       return parseStudentRows(await response.json());
     }).then((rows) => {
@@ -113,7 +114,7 @@ export default function HomePage() {
       const form = new FormData(); form.set("mode", mode); form.set("file", file);
       if (mode === "free") form.set("name", name);
       else { form.set("classId", classId); form.set("studentId", studentId); }
-      const response = await fetch("/api/photos/upload", { method: "POST", body: form });
+      const response = await fetch(appPath("/api/photos/upload"), { method: "POST", body: form });
       const data = await response.json().catch(() => null) as { error?: string; message?: string } | null;
       if (!response.ok) {
         if (data?.error === "Mode upload tidak sesuai.") {
@@ -138,7 +139,7 @@ export default function HomePage() {
   return <main className="min-h-screen bg-blue-50 px-4 py-8">
     <section className="mx-auto max-w-5xl rounded-3xl bg-white p-6 shadow-xl shadow-blue-100 sm:p-10">
       <div className="mb-8 text-center">
-        <Image src="/logo-sekolah.png" alt="Logo SMK Negeri 1 Batang" width={96} height={96} className="mx-auto mb-4 rounded-2xl object-contain" />
+        <Image src={appPath("/logo-sekolah.png")} alt="Logo SMK Negeri 1 Batang" width={96} height={96} className="mx-auto mb-4 rounded-2xl object-contain" />
         <p className="text-sm font-bold uppercase tracking-[0.2em] text-blue-600">LDK SMK NEGERI 1 BATANG</p>
         <h1 className="mt-2 text-3xl font-black text-slate-900 sm:text-4xl">{title}</h1>
         <p className="mt-2 text-lg font-bold text-blue-700">Tahun {year}</p>

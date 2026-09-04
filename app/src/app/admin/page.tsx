@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { buildAdminExportUrl, canPreview, initialOpenGroups, type DashboardView, type SubmissionGroup, type SubmissionRow } from "@/lib/dashboard";
+import { appPath } from "@/lib/paths";
 
 type Mode = "list" | "free";
 type Settings = { mode: Mode; title: string; year: string; description: string };
@@ -60,8 +61,8 @@ export default function AdminPage() {
     try {
       const query = new URLSearchParams({ view, status, classId, search });
       const [submissionsResponse, settingsResponse] = await Promise.all([
-        fetch(`/api/admin/submissions?${query.toString()}`),
-        fetch("/api/settings"),
+        fetch(appPath(`/api/admin/submissions?${query.toString()}`)),
+        fetch(appPath("/api/settings")),
       ]);
 
       if (submissionsResponse.status === 401) {
@@ -92,7 +93,7 @@ export default function AdminPage() {
   }
 
   useEffect(() => {
-    void fetch("/api/classes").then(async (response) => response.ok ? response.json() : []).then(setClasses).catch(() => setClasses([]));
+    void fetch(appPath("/api/classes")).then(async (response) => response.ok ? response.json() : []).then(setClasses).catch(() => setClasses([]));
   }, []);
 
   useEffect(() => {
@@ -102,7 +103,7 @@ export default function AdminPage() {
   async function mark(photoId: number | null, next: "blur" | "uploaded") {
     if (!photoId) return;
     setNotice("");
-    const response = await fetch(`/api/admin/photos/${photoId}/status`, {
+    const response = await fetch(appPath(`/api/admin/photos/${photoId}/status`), {
       method: "PATCH",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ status: next }),
@@ -114,7 +115,7 @@ export default function AdminPage() {
 
   async function copyNames(type: "pending" | "blur") {
     try {
-      const response = await fetch(`/api/admin/names?status=${type}`);
+      const response = await fetch(appPath(`/api/admin/names?status=${type}`));
       if (response.status === 401) return setUnauthorized(true);
       if (!response.ok) throw new Error("Daftar nama tidak dapat dimuat.");
       await navigator.clipboard.writeText(await response.text());
@@ -142,7 +143,7 @@ export default function AdminPage() {
     });
   }
 
-  if (unauthorized) return <StatePanel title="Sesi admin berakhir" message="Silakan masuk kembali untuk melihat dashboard." actionLabel="Ke halaman login" onAction={() => { window.location.href = "/admin/login"; }} />;
+  if (unauthorized) return <StatePanel title="Sesi admin berakhir" message="Silakan masuk kembali untuk melihat dashboard." actionLabel="Ke halaman login" onAction={() => { window.location.href = appPath("/admin/login"); }} />;
 
   const title = settings?.title ?? "Dashboard Admin";
   const year = settings?.year ? ` ${settings.year}` : "";
@@ -281,7 +282,7 @@ function PreviewModal({ row, onClose }: { row: Row; onClose: () => void }) {
   return <div role="dialog" aria-modal="true" aria-labelledby="preview-title" className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-4" onClick={onClose}>
     <div className="max-h-[90vh] w-full max-w-4xl overflow-auto rounded-2xl bg-white p-5 shadow-2xl" onClick={(event) => event.stopPropagation()}>
       <div className="mb-4 flex items-start justify-between gap-4"><div><h2 id="preview-title" className="text-xl font-black text-slate-900">{row.name}</h2><p className="text-sm text-slate-500">{row.className ?? "Submission nama bebas"}{typeof row.attendanceNumber !== "number" ? "" : ` · Absen ${String(row.attendanceNumber).padStart(2, "0")}`} · <Status status={row.status} /></p></div><button type="button" onClick={onClose} aria-label="Tutup preview foto" className="rounded-lg px-3 py-1.5 text-sm font-bold text-slate-500 hover:bg-slate-100">Tutup</button></div>
-      {imageError || !row.submissionKey ? <div role="alert" className="flex min-h-64 items-center justify-center rounded-xl bg-slate-100 p-6 text-center text-sm font-semibold text-slate-500">Foto tidak dapat ditampilkan.</div> : <img src={`/api/photos/submission/${encodeURIComponent(row.submissionKey)}`} alt={`Foto ${row.name}`} onError={() => setImageError(true)} className="mx-auto max-h-[75vh] rounded-xl object-contain" />}
+      {imageError || !row.submissionKey ? <div role="alert" className="flex min-h-64 items-center justify-center rounded-xl bg-slate-100 p-6 text-center text-sm font-semibold text-slate-500">Foto tidak dapat ditampilkan.</div> : <img src={appPath(`/api/photos/submission/${encodeURIComponent(row.submissionKey)}`)} alt={`Foto ${row.name}`} onError={() => setImageError(true)} className="mx-auto max-h-[75vh] rounded-xl object-contain" />}
     </div>
   </div>;
 }

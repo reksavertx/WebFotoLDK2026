@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { appPath } from "@/lib/paths";
 
 type Mode = "list" | "free";
 type Settings = { mode: Mode; title: string; year: string; description: string };
@@ -26,7 +27,7 @@ export default function FormSettingsPage() {
     setLoading(true);
     setError("");
     try {
-      const response = await fetch("/api/admin/settings");
+      const response = await fetch(appPath("/api/admin/settings"));
       const data = await response.json().catch(() => null) as SettingsResponse | { error?: string } | null;
       if (response.status === 401) {
         setUnauthorized(true);
@@ -56,7 +57,7 @@ export default function FormSettingsPage() {
     setError("");
     setNotice("");
     try {
-      const response = await fetch("/api/admin/settings", {
+      const response = await fetch(appPath("/api/admin/settings"), {
         method: "PUT",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(draft),
@@ -83,7 +84,7 @@ export default function FormSettingsPage() {
     setError("");
     setNotice("");
     try {
-      const response = await fetch("/api/admin/settings/activate", { method: "POST" });
+      const response = await fetch(appPath("/api/admin/settings/activate"), { method: "POST" });
       const data = await response.json().catch(() => null) as Settings | { error?: string } | null;
       if (response.status === 401) {
         setUnauthorized(true);
@@ -99,7 +100,7 @@ export default function FormSettingsPage() {
     }
   }
 
-  if (unauthorized) return <StatePanel title="Sesi admin berakhir" message="Silakan masuk kembali untuk mengatur form." actionLabel="Ke halaman login" onAction={() => { window.location.href = "/admin/login"; }} />;
+  if (unauthorized) return <StatePanel title="Sesi admin berakhir" message="Silakan masuk kembali untuk mengatur form." actionLabel="Ke halaman login" onAction={() => { window.location.href = appPath("/admin/login"); }} />;
 
   return <div className="min-h-screen bg-slate-50 px-4 py-6 sm:px-6 lg:px-8">
     <div className="mx-auto max-w-5xl space-y-6">

@@ -38,6 +38,8 @@ nginx/nginx.conf             # Reverse proxy
 docker-compose.yml            # MySQL, app, Nginx
 ```
 
+Panduan deploy menggunakan OpenLiteSpeed dan custom path tersedia di [`OPENLITESPEED.md`](OPENLITESPEED.md). Jika aplikasi diakses melalui `/webfoto`, build harus memakai `NEXT_PUBLIC_BASE_PATH=/webfoto` dan Proxy Context OpenLiteSpeed harus memakai prefix yang sama.
+
 ## Development Lokal
 
 1. Buat environment file:
