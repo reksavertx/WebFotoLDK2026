@@ -27,6 +27,14 @@ export type SubmissionGroup = {
   rows: SubmissionRow[];
 };
 
+export function initialOpenGroups(_groupKeys: readonly string[]) {
+  return [] as string[];
+}
+
+export function canPreview(row: Pick<SubmissionRow, "submissionKey" | "status">) {
+  return Boolean(row.submissionKey) && row.status !== "pending";
+}
+
 export type DashboardInput = {
   total: number;
   uploaded: number;
