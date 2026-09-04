@@ -10,9 +10,12 @@ WebFoto adalah sistem pengumpulan dan validasi foto siswa. Siswa tidak perlu mem
 - Foto diputar sesuai orientasi, diperkecil, dan disimpan sebagai JPEG (.jpg).
 - Upload ulang menggantikan foto aktif sebelumnya.
 - Dashboard admin dengan status `pending`, `uploaded`, dan `blur`.
-- Filter kelas/status/search, statistik, mark blur/valid, dan copy daftar nama.
-- Export ZIP per kelas atau seluruh kelas (folder per kelas) dengan nama `Kelas - Absen - Nama.jpg`.
-- Preview foto langsung dari dashboard dengan mengklik nama siswa.
+- Dashboard memiliki filter tampilan `Semua`, `Sesuai daftar`, dan `Nama bebas`, ditambah filter kelas (untuk data sesuai daftar), status, dan pencarian nama/NIS.
+- Daftar dashboard dikelompokkan dalam accordion per kelas atau grup `Nama Bebas`. Semua accordion awalnya tertutup; buka header kelas untuk melihat kartu siswa, progress upload, dan tombol `ZIP kelas`.
+- Kartu yang sudah memiliki foto menampilkan thumbnail. Klik thumbnail atau nama siswa untuk membuka preview foto berukuran besar; siswa yang belum upload tetap tampil sebagai placeholder.
+- Export ZIP per kelas atau global. `ZIP kelas` hanya tersedia untuk submission `Sesuai daftar`; ZIP global mengikuti tampilan yang dipilih dan memisahkan foto daftar serta `Nama Bebas` ke folder masing-masing bila keduanya disertakan.
+- Mengubah mode form publik antara `Sesuai daftar` dan `Nama bebas` tidak menghapus submission yang sudah ada. Gunakan tampilan dashboard untuk melihat data lama; penghapusan hanya dilakukan secara sengaja melalui menu `Gunakan Kembali Web`.
+- Statistik, mark blur/valid, dan copy daftar nama.
 - Export JSON/CSV untuk sistem design automation.
 - Import CSV dengan mode preview dan commit.
 - MySQL 8.4 LTS dan storage foto persisten.
@@ -70,6 +73,20 @@ npm run dev
 ```
 
 Buka `http://localhost:3000`. Dashboard admin berada di `http://localhost:3000/admin/login`.
+
+### Membaca Dashboard Admin
+
+Dashboard dapat digunakan untuk meninjau submission tanpa mengikuti mode form publik yang sedang aktif. Pilih tampilan berikut pada dropdown:
+
+- **Semua** — menampilkan submission dari form `Sesuai daftar` dan `Nama bebas`.
+- **Sesuai daftar** — menampilkan seluruh siswa dalam roster, termasuk kartu placeholder `Belum upload` untuk siswa yang belum mengirim foto. Filter kelas tersedia pada tampilan ini.
+- **Nama bebas** — menampilkan submission yang dibuat saat peserta mengetik nama sendiri. Beberapa submission dapat memakai nama yang sama, karena identitasnya dibedakan oleh submission dan foto, bukan roster kelas.
+
+Gunakan filter status (`Semua status`, `Belum upload`, `Sudah upload`, atau `Blur`) dan pencarian. Grup kelas dan grup `Nama Bebas` selalu mulai dalam keadaan tertutup. Klik header accordion untuk membuka kartu, lalu gunakan progress kelas dan tombol `ZIP kelas` pada header untuk mengunduh foto kelas tersebut. Thumbnail foto dimuat pada kartu; klik thumbnail atau nama siswa untuk membuka preview besar. Foto yang belum ada menampilkan placeholder dan tidak memiliki preview.
+
+Tombol `Download ZIP Semua` mengikuti tampilan yang dipilih: tampilan `Sesuai daftar` menghasilkan `Semua Kelas.zip`, tampilan `Nama bebas` menghasilkan ZIP foto bebas, dan tampilan `Semua` menggabungkan kedua sumber dengan folder terpisah untuk kelas dan `Nama Bebas`. ZIP per kelas hanya berlaku untuk submission sesuai daftar.
+
+Mode form di `/admin/form` hanya menentukan pilihan identitas untuk upload berikutnya. Mengaktifkan mode lain tidak menghapus submission dari mode sebelumnya, sehingga admin dapat berpindah mode lalu kembali melihat data lama dengan filter dashboard. Jangan gunakan menu `Gunakan Kembali Web` kecuali memang ingin menghapus semua submission dan file foto secara permanen.
 
 ## Production dengan Docker Compose
 

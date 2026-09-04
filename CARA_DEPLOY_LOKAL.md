@@ -126,6 +126,22 @@ Menu admin:
 - `http://localhost:3000/admin/form` — Pengaturan Form
 - `http://localhost:3000/admin/reuse` — Gunakan Kembali Web
 
+### Cara Membaca Dashboard
+
+Dashboard tidak dibatasi oleh mode form publik yang aktif. Pada dropdown tampilan, pilih:
+
+- **Semua** untuk melihat submission `Sesuai daftar` dan `Nama bebas` sekaligus.
+- **Sesuai daftar** untuk melihat seluruh siswa dari roster, termasuk placeholder `Belum upload`. Filter kelas hanya tersedia pada tampilan ini.
+- **Nama bebas** untuk melihat submission dengan nama yang diketik peserta. Nama yang sama dapat muncul pada beberapa submission.
+
+Filter status dapat diubah ke `Semua status`, `Belum upload`, `Sudah upload`, atau `Blur`. Gunakan kotak pencarian untuk nama/NIS, atau nama submission pada tampilan `Nama bebas`. Setiap kelas dan grup `Nama Bebas` ditampilkan sebagai accordion yang awalnya tertutup. Buka headernya untuk melihat kartu, progress upload, dan tombol `ZIP kelas`.
+
+Kartu foto menggunakan thumbnail agar dashboard ringan. Klik thumbnail atau nama siswa untuk membuka preview berukuran besar. Kartu yang belum memiliki foto tetap terlihat sebagai placeholder dan tidak dapat dibuka sebagai preview.
+
+`ZIP kelas` hanya tersedia untuk submission sesuai daftar. `Download ZIP Semua` mengikuti tampilan yang dipilih: `Sesuai daftar` mengunduh `Semua Kelas.zip`, `Nama bebas` mengunduh foto bebas, sedangkan `Semua` menggabungkan kedua sumber dalam folder kelas dan `Nama Bebas` yang terpisah.
+
+Mengubah dan mengaktifkan mode form di `/admin/form` tidak menghapus submission lama. Mode tersebut hanya berlaku untuk upload publik berikutnya. Setelah berpindah mode, gunakan filter dashboard untuk memeriksa submission dari mode sebelumnya. Penghapusan data adalah tindakan terpisah dan permanen melalui `Gunakan Kembali Web` > `Hapus Semua Data Foto`; backup dahulu sebelum menggunakan menu tersebut.
+
 Untuk memakai aplikasi pada event berikutnya, backup terlebih dahulu bila diperlukan, buka menu Gunakan Kembali Web, pilih **Hapus Semua Data Foto**, lalu upload dan terapkan CSV roster baru melalui preview. CSV baru harus memakai format `NO,NIS,NISN,NAMA,KELAS` dan foto harus sudah kosong sebelum roster dapat diganti.
 
 ---
