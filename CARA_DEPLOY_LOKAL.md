@@ -120,6 +120,13 @@ npm start
 
 Aplikasi berjalan di `http://localhost:3000` sebagai production server.
 
+### Status Publik dan Contoh Foto
+
+- Buka `http://localhost:3000/status` untuk melihat status upload publik. Halaman ini read-only dan mengikuti mode form aktif: `Sesuai daftar` menampilkan ringkasan per kelas dengan nama, nomor absen, status, dan waktu upload; `Nama bebas` menampilkan submission berdasarkan nama dan status.
+- Halaman tersebut memakai `GET /api/status` tanpa login. Respons publik hanya berisi ringkasan status; foto, URL/path penyimpanan, NIS/NISN, ID internal, dan data pribadi lain tidak dikirim.
+- Halaman upload `http://localhost:3000/` memiliki bagian **Contoh Foto** yang menampilkan contoh foto benar dan salah. Tombol **Lihat Status Upload** mengarah ke halaman status.
+- Jika memakai custom path `/webfoto`, build dengan `NEXT_PUBLIC_BASE_PATH=/webfoto`, lalu gunakan `http://localhost:3000/webfoto/status` dan `http://localhost:3000/webfoto/api/status`.
+
 Menu admin:
 
 - `http://localhost:3000/admin` — Dashboard Data Foto
@@ -218,6 +225,23 @@ tar -xzf /WebFoto/backups/webfoto-files-YYYY-MM-DD.tar.gz
 Uji restore secara berkala di database/server terpisah.
 
 ---
+
+## Verifikasi Dependency dan Aplikasi
+
+Gunakan versi `Wanted` dari `npm outdated` untuk update patch/minor yang masih diizinkan oleh range dependency. Setelah `npm update`, periksa `package.json` dan `package-lock.json`. Jangan menaikkan Next.js ke 16, TypeScript ke 7, Vitest ke 5, Sharp ke 0.35, atau Archiver ke 8 tanpa rencana migrasi dan verifikasi terpisah.
+
+Jalankan dari `/WebFoto/app` secara berurutan:
+
+```bash
+npm outdated
+npm update
+npm test
+npm run typecheck
+npm run lint
+npm run build
+```
+
+Setelah build, verifikasi `/status` dan `/api/status` secara manual. Pastikan mode halaman sesuai pengaturan form, status dapat dimuat tanpa login, dan tidak ada foto atau NIS/NISN pada halaman maupun respons publik. Untuk custom path, gunakan `NEXT_PUBLIC_BASE_PATH=/webfoto npm run build` dan verifikasi `/webfoto/status` serta `/webfoto/api/status`.
 
 ## Troubleshooting
 

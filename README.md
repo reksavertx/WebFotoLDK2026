@@ -20,6 +20,13 @@ WebFoto adalah sistem pengumpulan dan validasi foto siswa. Siswa tidak perlu mem
 - Import CSV dengan mode preview dan commit.
 - MySQL 8.4 LTS dan storage foto persisten.
 
+## Status Publik dan Contoh Foto
+
+- Halaman status publik tersedia di `/status` (contoh lokal: `http://localhost:3000/status`). Halaman ini bersifat read-only dan mengikuti mode form yang sedang aktif: `Sesuai daftar` menampilkan ringkasan per kelas beserta nama, nomor absen, status, dan waktu upload; `Nama bebas` menampilkan daftar submission berdasarkan nama dan status.
+- Endpoint yang dipakai halaman tersebut adalah `GET /api/status`. Endpoint dan halaman status tidak memerlukan login, tetapi tidak pernah mengirim foto, URL/penyimpanan foto, NIS/NISN, ID internal, atau data pribadi lain di luar ringkasan status.
+- Halaman upload `/` memiliki bagian **Contoh Foto** dengan contoh foto yang benar dan salah. Gunakan bagian ini untuk memberi panduan sebelum upload; tombol **Lihat Status Upload** membuka `/status`.
+- Jika aplikasi dipasang di custom path `/webfoto`, gunakan `/webfoto/status` dan `/webfoto/api/status` setelah build dengan `NEXT_PUBLIC_BASE_PATH=/webfoto`.
+
 ## Kebutuhan Sistem
 
 - Linux/macOS/Windows dengan Docker Engine dan Docker Compose.
@@ -252,6 +259,10 @@ npm run typecheck
 npm run lint
 npm run build
 ```
+
+Sebelum mengubah dependency, jalankan `npm outdated` dan gunakan kolom `Wanted` sebagai batas update patch/minor yang masih sesuai range. Jalankan `npm update`, lalu periksa `app/package.json` dan `app/package-lock.json`. Jangan menaikkan Next.js ke 16, TypeScript ke 7, Vitest ke 5, Sharp ke 0.35, atau Archiver ke 8 tanpa rencana migrasi dan verifikasi terpisah.
+
+Untuk verifikasi manual setelah build, buka `/status` dan pastikan `GET /api/status` berhasil, mode halaman sesuai pengaturan form, serta tidak ada foto atau NIS/NISN pada respons publik. Pada deployment `/webfoto`, ulangi pemeriksaan pada `/webfoto/status` dan `/webfoto/api/status`.
 
 ## Troubleshooting
 

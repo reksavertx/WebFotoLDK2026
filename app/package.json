@@ -15,32 +15,32 @@
     "seed": "node --env-file-if-exists=.env --import=tsx src/db/seed.ts"
   },
   "dependencies": {
-    "@radix-ui/react-dialog": "^1.1.6",
+    "@radix-ui/react-dialog": "^1.1.23",
     "archiver": "^7.0.1",
-    "bcryptjs": "^3.0.2",
+    "bcryptjs": "^3.0.3",
     "drizzle-orm": "^0.45.2",
-    "jose": "^6.0.10",
+    "jose": "^6.2.12",
     "lucide-react": "^0.468.0",
-    "next": "^15.5.22",
-    "mysql2": "^3.14.1",
-    "react": "^19.1.1",
-    "react-dom": "^19.1.1",
+    "next": "^15.5.25",
+    "mysql2": "^3.24.4",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
     "sharp": "^0.34.3",
-    "zod": "^4.0.5"
+    "zod": "^4.6.2"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.1.7",
+    "@tailwindcss/postcss": "^4.3.3",
     "@types/archiver": "^6.0.3",
-    "@types/node": "^22.15.21",
-    "@types/react": "^19.1.2",
-    "@types/react-dom": "^19.1.2",
-    "drizzle-kit": "^0.31.4",
+    "@types/node": "^22.20.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "drizzle-kit": "^0.31.10",
     "eslint": "^9.29.0",
-    "eslint-config-next": "^15.5.23",
-    "postcss": "^8.5.3",
-    "tailwindcss": "^4.1.7",
-    "tsx": "^4.19.4",
-    "typescript": "^5.8.3",
-    "vitest": "^3.2.4"
+    "eslint-config-next": "^15.5.25",
+    "postcss": "^8.5.28",
+    "tailwindcss": "^4.3.3",
+    "tsx": "^4.23.13",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.7"
   }
 }
