@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { parseActiveSettings, parseStudentRows, type PublicSettings, type StudentRow } from "@/lib/public-form";
 import { appPath } from "@/lib/paths";
-import { examplePhotoPath } from "@/lib/public-status-ui";
+import { examplePhotoDimensions, examplePhotoPath } from "@/lib/public-status-ui";
 
 type ClassRow = { id: number; name: string };
 type Mode = PublicSettings["mode"];
@@ -164,11 +164,11 @@ export default function HomePage() {
          </div>
          <div className="grid gap-5 sm:grid-cols-2">
            <article className="overflow-hidden rounded-2xl border border-green-100 bg-green-50/60">
-             <Image src={examplePhotoPath("good")} alt="Contoh foto yang benar: wajah terlihat jelas dengan pencahayaan cukup" width={1122} height={1496} className="aspect-[3/4] w-full object-cover" />
+             <Image src={examplePhotoPath("good")} alt="Contoh foto yang benar: wajah terlihat jelas dengan pencahayaan cukup" width={examplePhotoDimensions.width} height={examplePhotoDimensions.height} className="h-auto w-full object-contain" />
              <div className="p-4"><h3 className="font-black text-green-800">Contoh Foto yang Benar</h3><p className="mt-1 text-sm text-green-700">Wajah terlihat jelas, fokus, dan memiliki pencahayaan cukup.</p></div>
            </article>
            <article className="overflow-hidden rounded-2xl border border-red-100 bg-red-50/60">
-             <Image src={examplePhotoPath("bad")} alt="Contoh foto yang salah: wajah tertutup dan gambar blur dengan latar ramai" width={1122} height={1496} className="aspect-[3/4] w-full object-cover" />
+             <Image src={examplePhotoPath("bad")} alt="Contoh foto yang salah: wajah tertutup dan gambar blur dengan latar ramai" width={examplePhotoDimensions.width} height={examplePhotoDimensions.height} className="h-auto w-full object-contain" />
              <div className="p-4"><h3 className="font-black text-red-800">Contoh Foto yang Salah</h3><p className="mt-1 text-sm text-red-700">Hindari foto blur, wajah tertutup, dan latar yang terlalu ramai.</p></div>
            </article>
          </div>

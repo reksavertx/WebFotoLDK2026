@@ -29,7 +29,7 @@ describe("public status aggregation", () => {
       ],
     });
 
-    expect(result).toMatchObject({ total: 3, uploaded: 1, blur: 1, pending: 1, progress: 66.7 });
+    expect(result).toMatchObject({ total: 3, submitted: 2, uploaded: 1, blur: 1, pending: 1, progress: 66.7 });
     expect(result.classes.map((group) => group.className)).toEqual(["X TJKT", "X DKV"]);
     expect(result.classes[0].students.map((student) => student.name)).toEqual(["A", "B"]);
     expect(result.classes[0]).toMatchObject({ total: 2, uploaded: 0, blur: 1, pending: 1, progress: 50 });
@@ -72,6 +72,7 @@ describe("public status aggregation", () => {
   it("rounds progress to one decimal and handles empty input", () => {
     expect(buildPublicListStats({ rows: [] })).toMatchObject({
       total: 0,
+      submitted: 0,
       uploaded: 0,
       blur: 0,
       pending: 0,

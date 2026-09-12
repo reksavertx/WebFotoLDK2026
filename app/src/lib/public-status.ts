@@ -27,6 +27,7 @@ export type PublicClassSummary = {
 
 export type PublicListStats = {
   total: number;
+  submitted: number;
   uploaded: number;
   blur: number;
   pending: number;
@@ -106,6 +107,7 @@ export function buildPublicListStats<T extends PublicListRow>(input: { rows: rea
   const counts = countStatuses(input.rows);
   return {
     total: input.rows.length,
+    submitted: counts.uploaded + counts.blur,
     ...counts,
     progress: progressFor(counts.uploaded + counts.blur, input.rows.length),
     classes: classSummaries,

@@ -83,12 +83,12 @@ function ListStatus({ data }: { data: ListResponse }) {
   return <>
     <section aria-label="Ringkasan upload" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <StatCard label="Total Siswa" value={stats.total} />
-      <StatCard label="Sudah Upload" value={stats.uploaded} color="text-green-600" />
+      <StatCard label="Sudah Upload" value={stats.submitted} color="text-green-600" />
       <StatCard label="Belum Upload" value={stats.pending} color="text-slate-600" />
       <StatCard label="Progress" value={`${stats.progress}%`} color="text-blue-700" />
     </section>
 
-    <ProgressSection progress={stats.progress} submitted={stats.uploaded + stats.blur} total={stats.total} />
+    <ProgressSection progress={stats.progress} submitted={stats.submitted} blur={stats.blur} total={stats.total} />
     <ClassChart classes={classes} />
 
     <section className="space-y-4" aria-labelledby="class-details-title">
@@ -112,7 +112,7 @@ function FreeStatus({ data }: { data: FreeResponse }) {
       <StatCard label="Progress Submission" value={`${stats.progress}%`} color="text-blue-700" />
     </section>
 
-    <ProgressSection progress={stats.progress} submitted={stats.submitted} total={stats.total} />
+    <ProgressSection progress={stats.progress} submitted={stats.submitted} blur={stats.blur} total={stats.total} />
     <section aria-labelledby="free-details-title" className="space-y-4">
       <div><p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-600">Rincian</p><h2 id="free-details-title" className="text-2xl font-black text-slate-900">Nama Bebas</h2></div>
       {submissions.length ? <div className="overflow-hidden rounded-2xl bg-white shadow-sm"><div className="divide-y divide-slate-100">{submissions.map((row, index) => <SubmissionRow key={`${row.name}-${row.uploadedAt ?? index}`} row={row} />)}</div></div> : <EmptyPanel>Belum ada submission nama bebas.</EmptyPanel>}
@@ -124,9 +124,9 @@ function StatCard({ label, value, color = "text-blue-600" }: { label: string; va
   return <article className="rounded-2xl bg-white p-5 shadow-sm"><p className="text-sm font-semibold text-slate-500">{label}</p><p className={`mt-2 text-3xl font-black ${color}`}>{value}</p></article>;
 }
 
-function ProgressSection({ progress, submitted, total }: { progress: number; submitted: number; total: number }) {
+function ProgressSection({ progress, submitted, blur, total }: { progress: number; submitted: number; blur: number; total: number }) {
   const width = Math.max(0, Math.min(100, progress));
-  return <section aria-label="Progress keseluruhan" className="rounded-2xl bg-white p-5 shadow-sm sm:p-6"><div className="flex flex-wrap items-end justify-between gap-2"><div><p className="text-sm font-bold text-slate-900">Progress Upload Keseluruhan</p><p className="mt-1 text-sm text-slate-500">{submitted} dari {total} data sudah masuk.</p></div><p className="text-2xl font-black text-blue-700">{progress}%</p></div><div className="mt-4 h-4 overflow-hidden rounded-full bg-blue-100" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100} aria-label="Progress upload"><div className="h-full rounded-full bg-blue-600 transition-all" style={{ width: `${width}%` }} /></div></section>;
+  return <section aria-label="Progress keseluruhan" className="rounded-2xl bg-white p-5 shadow-sm sm:p-6"><div className="flex flex-wrap items-end justify-between gap-2"><div><p className="text-sm font-bold text-slate-900">Progress Upload Keseluruhan</p><p className="mt-1 text-sm text-slate-500">{submitted} dari {total} data sudah masuk - {blur} foto blur.</p></div><p className="text-2xl font-black text-blue-700">{progress}%</p></div><div className="mt-4 h-4 overflow-hidden rounded-full bg-blue-100" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100} aria-label="Progress upload"><div className="h-full rounded-full bg-blue-600 transition-all" style={{ width: `${width}%` }} /></div></section>;
 }
 
 function ClassChart({ classes }: { classes: PublicClassSummary[] }) {

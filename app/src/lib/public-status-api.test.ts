@@ -64,7 +64,7 @@ describe("public status API", () => {
     expect(data).toEqual({
       settings: { mode: "list", title: "Event", year: "2026", description: "Description" },
       mode: "list",
-      stats: { total: 2, uploaded: 1, blur: 0, pending: 1, progress: 50 },
+       stats: { total: 2, submitted: 1, uploaded: 1, blur: 0, pending: 1, progress: 50 },
       classes: [{
         className: "X TJKT",
         total: 2,
