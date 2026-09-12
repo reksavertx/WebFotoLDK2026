@@ -1,9 +1,11 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { parseActiveSettings, parseStudentRows, type PublicSettings, type StudentRow } from "@/lib/public-form";
 import { appPath } from "@/lib/paths";
+import { examplePhotoPath } from "@/lib/public-status-ui";
 
 type ClassRow = { id: number; name: string };
 type Mode = PublicSettings["mode"];
@@ -153,9 +155,26 @@ export default function HomePage() {
           <RequirementGroup title="Yang Tidak Diperbolehkan" items={restrictions} tone="bad" />
         </div>
         <div className="mt-5 rounded-xl border border-blue-100 bg-white p-4"><h3 className="font-black text-blue-800">Tips Foto yang Baik</h3><div className="mt-3 grid gap-3 sm:grid-cols-2">{tips.map(([title, text]) => <div key={title}><p className="text-sm font-bold text-slate-800">{title}</p><p className="text-sm text-slate-600">{text}</p></div>)}</div></div>
-      </section>
+       </section>
 
-      <form onSubmit={submit} className="mx-auto max-w-2xl space-y-5">
+       <section aria-labelledby="examples-title" className="mb-8">
+         <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+           <div><h2 id="examples-title" className="text-xl font-black text-slate-900">Contoh Foto</h2><p className="mt-1 text-sm text-slate-600">Gunakan contoh ini sebagai panduan sebelum memilih foto.</p></div>
+           <Link href={appPath("/status")} className="inline-flex w-fit items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-100 transition hover:bg-blue-700">Lihat Status Upload</Link>
+         </div>
+         <div className="grid gap-5 sm:grid-cols-2">
+           <article className="overflow-hidden rounded-2xl border border-green-100 bg-green-50/60">
+             <Image src={examplePhotoPath("good")} alt="Contoh foto yang benar: wajah terlihat jelas dengan pencahayaan cukup" width={1122} height={1496} className="aspect-[3/4] w-full object-cover" />
+             <div className="p-4"><h3 className="font-black text-green-800">Contoh Foto yang Benar</h3><p className="mt-1 text-sm text-green-700">Wajah terlihat jelas, fokus, dan memiliki pencahayaan cukup.</p></div>
+           </article>
+           <article className="overflow-hidden rounded-2xl border border-red-100 bg-red-50/60">
+             <Image src={examplePhotoPath("bad")} alt="Contoh foto yang salah: wajah tertutup dan gambar blur dengan latar ramai" width={1122} height={1496} className="aspect-[3/4] w-full object-cover" />
+             <div className="p-4"><h3 className="font-black text-red-800">Contoh Foto yang Salah</h3><p className="mt-1 text-sm text-red-700">Hindari foto blur, wajah tertutup, dan latar yang terlalu ramai.</p></div>
+           </article>
+         </div>
+       </section>
+
+       <form onSubmit={submit} className="mx-auto max-w-2xl space-y-5">
         {settingsChanged && <div role="alert" className="rounded-xl border border-amber-100 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800"><p>Mode form berubah di server. Pengaturan terbaru sudah dimuat.</p><button type="button" onClick={() => void retrySettings()} className="mt-2 rounded-lg bg-white px-3 py-1.5 text-sm font-bold text-amber-800 shadow-sm hover:bg-amber-100">Muat ulang pengaturan</button></div>}
         <fieldset disabled={loading || settingsLoading} className="space-y-5">
           {mode === "list" ? <><label className="block"><span className="mb-2 block text-sm font-bold text-slate-700">Kelas</span><select value={classId} onChange={(e) => { setClassId(e.target.value); setStudentId(""); }} className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none ring-blue-500 focus:ring-2"><option value="">Pilih kelas</option>{classes.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
