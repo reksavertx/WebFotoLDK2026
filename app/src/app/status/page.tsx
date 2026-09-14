@@ -65,7 +65,6 @@ export default function StatusPage() {
           </div>
           <nav aria-label="Navigasi status" className="flex flex-wrap gap-2">
             <Link href={appPath("/")} className="rounded-xl border border-blue-200 bg-white px-4 py-2.5 text-sm font-bold text-blue-700 hover:bg-blue-50">Kembali ke Form</Link>
-            <Link href={appPath("/admin/login")} className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-blue-700">Login Admin</Link>
           </nav>
         </div>
       </header>
@@ -147,7 +146,8 @@ function ClassDetails({ summary }: { summary: PublicClassSummary }) {
 }
 
 function StudentRow({ row }: { row: PublicListRow }) {
-  return <div className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4"><div className="min-w-0"><p className="truncate font-bold text-slate-900">{row.name}</p><p className="mt-1 text-xs font-semibold text-slate-500">Absen {String(row.attendanceNumber).padStart(2, "0")}</p></div><div className="flex items-center justify-between gap-3 sm:justify-end"><StatusPill status={row.status} /><span className="text-right text-xs text-slate-500">{formatUploadTime(row.uploadedAt)}</span></div></div>;
+  const nameColor = row.status === "uploaded" ? "text-green-700" : row.status === "pending" ? "text-red-700" : "text-amber-700";
+  return <div className="flex flex-col gap-2 border-b border-slate-100 p-4 last:border-b-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4"><div className="min-w-0"><p className={`truncate font-bold ${nameColor}`}>{row.name}</p><p className="mt-1 text-xs font-semibold text-slate-500">Absen {String(row.attendanceNumber).padStart(2, "0")}</p></div><div className="flex items-center justify-between gap-3 sm:justify-end"><StatusPill status={row.status} /><span className="text-right text-xs text-slate-500">{formatUploadTime(row.uploadedAt)}</span></div></div>;
 }
 
 function SubmissionRow({ row }: { row: PublicFreeRow }) {
@@ -155,7 +155,7 @@ function SubmissionRow({ row }: { row: PublicFreeRow }) {
 }
 
 function StatusPill({ status }: { status: PublicStatus }) {
-  const style = status === "uploaded" ? "bg-green-100 text-green-800" : status === "blur" ? "bg-amber-100 text-amber-800" : "bg-slate-100 text-slate-600";
+  const style = status === "uploaded" ? "bg-green-100 text-green-800" : status === "blur" ? "bg-amber-100 text-amber-800" : "bg-red-100 text-red-700";
   return <span className={`whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-bold ${style}`}>{publicStatusLabel(status)}</span>;
 }
 
