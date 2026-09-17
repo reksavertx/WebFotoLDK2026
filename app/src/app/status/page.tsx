@@ -142,12 +142,26 @@ function ClassChart({ classes }: { classes: PublicClassSummary[] }) {
 }
 
 function ClassDetails({ summary }: { summary: PublicClassSummary }) {
-  return <article className="overflow-hidden rounded-2xl bg-white shadow-sm"><div className="border-b border-slate-100 p-5"><div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><h3 className="text-lg font-black text-slate-900">{summary.className}</h3><p className="mt-1 text-sm text-slate-500">{summary.uploaded + summary.blur} dari {summary.total} sudah upload - {summary.progress}%</p></div><div className="w-full sm:max-w-xs"><div className="h-2.5 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-blue-600" style={{ width: `${Math.max(0, Math.min(100, summary.progress))}%` }} /></div></div></div></div><div className="divide-y divide-slate-100">{summary.students.length ? summary.students.map((row, index) => <StudentRow key={`${row.name}-${row.attendanceNumber}-${index}`} row={row} />) : <p className="p-5 text-sm text-slate-500">Belum ada siswa di kelas ini.</p>}</div></article>;
+  const progress = Math.max(0, Math.min(100, summary.progress));
+  return <article className="overflow-hidden rounded-2xl bg-white shadow-sm">
+    <div className="bg-blue-600 p-4 text-white sm:p-5">
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="flex min-w-0 items-center gap-2 text-base font-black sm:text-lg"><span aria-hidden="true">▱</span><span className="truncate">Kelas {summary.className}</span></h3>
+        <span className="shrink-0 rounded-full bg-emerald-500 px-3 py-1 text-xs font-black">{summary.progress}%</span>
+      </div>
+    </div>
+    <div className="p-4 sm:p-5">
+      <div className="flex items-center justify-between text-xs font-semibold text-slate-500"><span className="text-green-700">✓ {summary.uploaded + summary.blur} / {summary.total}</span><span>{summary.progress}%</span></div>
+      <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-slate-200"><div className="h-full rounded-full bg-blue-600" style={{ width: `${progress}%` }} /></div>
+      <div className="mt-4 grid grid-cols-2 divide-x divide-slate-200 text-center"><div><p className="text-xl font-black text-green-600">{summary.uploaded + summary.blur}</p><p className="text-xs text-slate-500">Sudah</p></div><div><p className="text-xl font-black text-red-600">{summary.pending}</p><p className="text-xs text-slate-500">Belum</p></div></div>
+    </div>
+    <div className="max-h-[28rem] overflow-y-auto px-4 pb-3 sm:px-5">{summary.students.length ? summary.students.map((row, index) => <StudentRow key={`${row.name}-${row.attendanceNumber}-${index}`} row={row} />) : <p className="p-5 text-sm text-slate-500">Belum ada siswa di kelas ini.</p>}</div>
+  </article>;
 }
 
 function StudentRow({ row }: { row: PublicListRow }) {
   const nameColor = row.status === "uploaded" ? "text-green-700" : row.status === "pending" ? "text-red-700" : "text-amber-700";
-  return <div className="flex flex-col gap-2 border-b border-slate-100 p-4 last:border-b-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4"><div className="min-w-0"><p className={`truncate font-bold ${nameColor}`}>{row.name}</p><p className="mt-1 text-xs font-semibold text-slate-500">Absen {String(row.attendanceNumber).padStart(2, "0")}</p></div><div className="flex items-center justify-between gap-3 sm:justify-end"><StatusPill status={row.status} /><span className="text-right text-xs text-slate-500">{formatUploadTime(row.uploadedAt)}</span></div></div>;
+  return <div className="flex items-center justify-between gap-3 border-b border-slate-200 py-2.5 last:border-b-0"><div className="flex min-w-0 items-start gap-2"><span aria-hidden="true" className={`mt-0.5 text-sm font-black ${nameColor}`}>{row.status === "uploaded" ? "●" : row.status === "pending" ? "×" : "!"}</span><div className="min-w-0"><p className={`font-bold leading-5 ${nameColor}`}>{row.name}</p><p className="mt-0.5 text-[11px] font-semibold text-slate-500">Absen {String(row.attendanceNumber).padStart(2, "0")}</p></div></div><div className="flex shrink-0 flex-col items-end gap-1"><span className="text-right text-[11px] font-semibold text-slate-500">{formatUploadTime(row.uploadedAt)}</span><StatusPill status={row.status} /></div></div>;
 }
 
 function SubmissionRow({ row }: { row: PublicFreeRow }) {
